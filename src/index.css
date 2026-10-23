@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Syne', sans-serif;
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #050505;
+    color: #F4F4F0;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif-editorial {
+  font-family: var(--font-serif);
+}
+
+.font-mono-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
+}
+
+.animate-eye-pulse {
+  animation: subtle-pulse 4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes metallic-shimmer {
+  0% {
+    transform: translateX(-150%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(350%) skewX(-15deg);
+  }
+}
+
+.animate-metallic-shimmer {
+  animation: metallic-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes frequency-wave {
+  0%, 100% {
+    opacity: 0.65;
+    transform: scaleY(0.25);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.animate-frequency-wave {
+  animation: frequency-wave 900ms ease-in-out infinite;
+  transform-origin: bottom;
+}

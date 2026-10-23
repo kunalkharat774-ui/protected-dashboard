@@ -1,0 +1,6 @@
+{
+  "name": "Nocturne — Dark Eyes Loading Screen & Studio",
+  "description": "Atmospheric dark-eyes loading screen experience with interactive eye tracking, custom SVG & Tenor GIF modes, and live component export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
