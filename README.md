@@ -1,12 +1,11 @@
-
-<div align="center">
+ <div align="center">
 
 # 🛡️ SecureWatch
 ### Web Application & API Security Dashboard
 
 **Monitor. Analyze. Secure.**
 
-A centralized cybersecurity dashboard concept for monitoring web application security, API activity, vulnerabilities, risk indicators, and security events — all in one place.
+A centralized cybersecurity dashboard for monitoring web application security, API activity, vulnerabilities, risk indicators, and security events — all in one place.
 
 <br>
 
@@ -17,16 +16,17 @@ A centralized cybersecurity dashboard concept for monitoring web application sec
 <br>
 
 <p>
-  <img src="https://img.shields.io/badge/PROJECT-SECUREWATCH-00D9E8?style=for-the-badge&logo=shield&logoColor=white" alt="Project SecureWatch">
+  <img src="https://img.shields.io/badge/PROJECT-SECUREWATCH-00D9E8?style=for-the-badge&logo=shield&logoColor=white" alt="SecureWatch">
   <img src="https://img.shields.io/badge/DOMAIN-CYBERSECURITY-16C784?style=for-the-badge&logo=protonvpn&logoColor=white" alt="Cybersecurity">
-  <img src="https://img.shields.io/badge/WEB-APPLICATION%20%26%20API-2471A3?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web and API Security">
+  <img src="https://img.shields.io/badge/BACKEND-NODE.JS-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js Backend">
+  <img src="https://img.shields.io/badge/DATABASE-SUPABASE%20CLOUD-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase Cloud">
 </p>
 
 <p>
   <a href="https://github.com/kunalkharat774-ui/-Projects">
-    <img src="https://img.shields.io/badge/GitHub-View%20Repository-181717?style=flat-square&logo=github" alt="View Repository">
+    <img src="https://img.shields.io/badge/GitHub-View%20Repository-181717?style=flat-square&logo=github" alt="GitHub Repository">
   </a>
-  <img src="https://img.shields.io/badge/Status-Prototype-FFB020?style=flat-square" alt="Prototype Status">
+  <img src="https://img.shields.io/badge/Status-Prototype-FFB020?style=flat-square" alt="Prototype">
   <img src="https://img.shields.io/badge/Focus-Defensive%20Security-16C784?style=flat-square" alt="Defensive Security">
 </p>
 
@@ -36,13 +36,18 @@ A centralized cybersecurity dashboard concept for monitoring web application sec
 
 ## ◈ Overview
 
-**SecureWatch** is a Web Application & API Security Dashboard project designed to bring essential security information into a centralized interface.
+**SecureWatch** is a Web Application & API Security Dashboard designed to bring essential security information into one centralized interface.
 
-The dashboard concept helps users review application security events, observe API request activity, examine potential vulnerabilities, understand risk indicators, and organize security alerts.
+The platform is designed around a modern dark cybersecurity interface and uses the following architecture:
 
-Built around a modern dark cybersecurity aesthetic, the project aims to make security information easier to visualize and understand.
+- **Frontend:** HTML5, CSS3 and JavaScript
+- **Backend:** Node.js for server-side logic and API endpoints
+- **Cloud Database:** Supabase Cloud for storing and managing application data
+- **Version Control:** Git and GitHub
 
-> **Demo Disclaimer:** The GIF above is an external visual preview. Any simulated metrics or sample alerts are illustrative and must not be interpreted as verified live threats. Real monitoring requires an implemented backend and authorized data sources.
+The intended architecture allows the frontend to communicate with the Node.js backend, while the backend can interact with Supabase for database operations, event history, and other supported application features.
+
+> **Demo Disclaimer:** Animated previews and sample metrics are illustrative. Actual monitoring, security scanning, authentication, and database operations depend on the features implemented and configured in the application.
 
 ---
 
@@ -104,7 +109,7 @@ Built around a modern dark cybersecurity aesthetic, the project aims to make sec
 ### 📁 Logs & Reports
 
 - Organize security events.
-- Review available monitoring history.
+- Review monitoring history stored in the database.
 - Generate reports when implemented.
 
 </td>
@@ -116,7 +121,7 @@ Built around a modern dark cybersecurity aesthetic, the project aims to make sec
 | Utility | Purpose |
 |---|---|
 | Password Strength | Evaluate password strength |
-| Email Breach Checker | Check for known breach exposure using an appropriate service |
+| Email Breach Checker | Check known breach exposure using a supported service |
 | IP Lookup | Retrieve available IP information |
 | Domain Information | Review domain-related details |
 | URL Reputation | Check URLs against supported reputation sources |
@@ -124,40 +129,60 @@ Built around a modern dark cybersecurity aesthetic, the project aims to make sec
 | Text Encryption | Encrypt and decrypt text |
 | Audit Logs | Review recorded events when logging is implemented |
 
-*The availability and accuracy of these tools depend on the actual implementation and connected services.*
-
----
-
-## 🖥️ Dashboard Preview
-
-<div align="center">
-
-**SECUREWATCH — SECURITY OPERATIONS INTERFACE**
-
-<img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2s5NXNqbTMxYnE0cmVpd25vdTAzamxmNHh2MTBpNTgwa2dnZjI1bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/qQgKLMJvWEZKI2Hfvo/giphy.gif" width="90%" alt="Animated security dashboard preview">
-
-<sub>Animated visual reference · External GIF hosted on Giphy</sub>
-
-</div>
+*Tool availability and accuracy depend on the actual implementation and connected services.*
 
 ---
 
 ## 🧰 Technology Stack
 
-Update this section to reflect the technologies actually used in your application.
-
 <p>
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
+  <img src="https://img.shields.io/badge/Supabase%20Cloud-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase Cloud">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
   <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
 </p>
 
-- **Frontend:** HTML, CSS, JavaScript
-- **Backend:** Add the framework actually used, if applicable
-- **Database:** Add the database actually used, if applicable
-- **External Services:** Add configured security APIs, if applicable
-- **Version Control:** Git and GitHub
+| Layer | Technology | Responsibility |
+|---|---|---|
+| Frontend | HTML5, CSS3, JavaScript | User interface and dashboard interactions |
+| Backend | Node.js | Server-side processing and application logic |
+| API Framework | Express.js (if used) | Routing and HTTP API endpoints |
+| Cloud Database | Supabase Cloud | Hosted PostgreSQL database |
+| Authentication | Supabase Auth (if configured) | User authentication and session management |
+| Cloud Storage | Supabase Storage (if configured) | File storage |
+| Version Control | Git and GitHub | Source code management |
+
+### 🏗️ System Architecture
+
+```text
+              USER
+                |
+                v
+       FRONTEND DASHBOARD
+       HTML / CSS / JavaScript
+                |
+                v
+          NODE.JS SERVER
+       Backend Application Logic
+                |
+                v
+          EXPRESS.JS API
+         (If implemented)
+                |
+                v
+          SUPABASE CLOUD
+                |
+                v
+       POSTGRESQL DATABASE
+     Security Events / Logs /
+       Application Records
+```
+
+**Data flow:** The frontend sends requests to the Node.js backend. The backend processes requests and communicates with Supabase Cloud to read or write data. The resulting response is returned to the frontend.
 
 ---
 
@@ -169,8 +194,9 @@ Update this section to reflect the technologies actually used in your applicatio
 | Memory | 4 GB RAM recommended |
 | Storage | 10 GB free space recommended |
 | Browser | Modern web browser |
-| Internet | Required for external services |
-| Backend | Depends on the implemented architecture |
+| Runtime | Node.js LTS |
+| Database | Configured Supabase Cloud project |
+| Internet | Required for cloud database access and external services |
 
 ---
 
@@ -178,34 +204,82 @@ Update this section to reflect the technologies actually used in your applicatio
 
 ### 1. Clone the Repository
 
-Replace the example URL if your project is hosted in a different repository.
-
 ```bash
 git clone https://github.com/kunalkharat774-ui/-Projects.git
-```
-
-### 2. Open the Project
-
-```bash
 cd -Projects
 ```
 
-### 3. Launch the Application
+### 2. Install Node.js
 
-Open the relevant HTML entry file in your browser for a static frontend, or follow your project's backend setup instructions if a server is required.
+Install a supported Node.js LTS release from the official website:
 
-**Note:** The commands above are starting points. Configure dependencies, environment variables, and server commands according to your actual source code.
+https://nodejs.org/
+
+Verify the installation:
+
+```bash
+node --version
+npm --version
+```
+
+### 3. Configure the Backend
+
+If your backend has a `package.json` file, install its dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file in the backend project directory and configure the environment variables required by your application.
+
+Example:
+
+```env
+PORT=3000
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_server_only_secret
+```
+
+**Security warning:** The service-role key is a privileged server-side secret. Never expose it in frontend JavaScript, commit it to GitHub, or share it publicly. Use a server-side environment variable and configure appropriate database access policies.
+
+### 4. Configure Supabase Cloud
+
+1. Create a project at https://supabase.com/.
+2. Obtain the project URL and the required API credentials from your Supabase project settings.
+3. Create the database tables required by your application.
+4. Configure Row Level Security (RLS) and appropriate database permissions.
+5. Add the required environment variables to your backend deployment.
+
+### 5. Start the Backend
+
+If your `package.json` defines a `start` script, run:
+
+```bash
+npm start
+```
+
+For a development script, if configured:
+
+```bash
+npm run dev
+```
+
+Open the frontend using your project's configured local server or frontend development command.
+
+*The commands may need adjustment to match your actual folder structure and `package.json` scripts.*
 
 ---
 
 ## 🗺️ Development Roadmap
 
-- [ ] Responsive dashboard layout
-- [ ] Backend API integration
+- [ ] Responsive security dashboard
+- [ ] Node.js backend integration
+- [ ] REST API endpoints
+- [ ] Supabase Cloud database integration
 - [ ] Secure administrator authentication
-- [ ] Database-backed event history
+- [ ] Database-backed security event history
 - [ ] Configurable security alerts
-- [ ] Vulnerability assessment reporting
+- [ ] Authorized vulnerability assessment
 - [ ] Risk scoring and visualization
 - [ ] Exportable security reports
 - [ ] Audit logging and access controls
@@ -216,9 +290,11 @@ Open the relevant HTML entry file in your browser for a static frontend, or foll
 ## 🔒 Security & Responsible Use
 
 - Assess only systems you own or have explicit authorization to test.
-- Keep API keys and credentials out of public repositories.
-- Use secure authentication and access controls.
+- Keep API keys, database credentials, and secrets out of public repositories.
+- Never expose privileged Supabase credentials in browser code.
+- Use secure authentication and appropriate database access policies.
 - Validate and protect sensitive application data.
+- Apply input validation, error handling, and rate limiting to backend endpoints.
 - Verify findings before classifying them as security incidents.
 - Do not treat sample metrics or animated demonstrations as evidence of real attacks.
 
