@@ -11,6 +11,7 @@ import dns from 'dns';
 import { promisify } from 'util';
 import fs from 'fs/promises';
 import { config as loadEnv } from 'dotenv';
+import { getSupabaseAdminClient } from './lib/supabase';
 
 const resolve4Async = promisify(dns.resolve4);
 const resolve6Async = promisify(dns.resolve6);
@@ -872,25 +873,39 @@ export async function createApp(serveFrontend = true) {
       return res.status(400).json({ error: 'Explicit consent and a valid coarse device profile are required.' });
     }
 
-    const visit: DeviceVisit = {
-      visitedAt: new Date().toISOString(),
-      deviceType,
-      browser,
-      operatingSystem,
-    };
-    const saveVisit = async () => {
-      const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      const visits = (await readDeviceVisits())
-        .filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff)
-        .concat(visit)
-        .slice(-1000);
-      await writeDeviceVisits(visits);
-    };
-
-    const queuedSave = deviceVisitsWriteQueue.then(saveVisit);
-    deviceVisitsWriteQueue = queuedSave.then(() => undefined, () => undefined);
     try {
-      await queuedSave;
+      const supabase = getSupabaseAdminClient();
+      if (supabase) {
+        const { error } = await supabase.rpc('record_device_intelligence_visit', {
+          p_device_type: deviceType,
+          p_browser: browser,
+          p_operating_system: operatingSystem,
+        });
+        if (error) throw error;
+      } else if (process.env.VERCEL) {
+        return res.status(503).json({
+          error: 'Device visit storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.',
+        });
+      } else {
+        const visit: DeviceVisit = {
+          visitedAt: new Date().toISOString(),
+          deviceType,
+          browser,
+          operatingSystem,
+        };
+        const saveVisit = async () => {
+          const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+          const visits = (await readDeviceVisits())
+            .filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff)
+            .concat(visit)
+            .slice(-1000);
+          await writeDeviceVisits(visits);
+        };
+        const queuedSave = deviceVisitsWriteQueue.then(saveVisit);
+        deviceVisitsWriteQueue = queuedSave.then(() => undefined, () => undefined);
+        await queuedSave;
+      }
+
       return res.status(201).json({ success: true });
     } catch (error) {
       console.error('Failed to save consented device visit:', error);
@@ -900,17 +915,38 @@ export async function createApp(serveFrontend = true) {
 
   app.get('/api/device-intelligence/visits', async (_req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store');
-    const readAndPrune = async () => {
-      const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      const storedVisits = await readDeviceVisits();
-      const visits = storedVisits.filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff).slice(-1000);
-      if (visits.length !== storedVisits.length) await writeDeviceVisits(visits);
-      return visits;
-    };
-    const queuedRead = deviceVisitsWriteQueue.then(readAndPrune);
-    deviceVisitsWriteQueue = queuedRead.then(() => undefined, () => undefined);
     try {
-      const visits = (await queuedRead).reverse();
+      const supabase = getSupabaseAdminClient();
+      let visits: DeviceVisit[];
+      if (supabase) {
+        const { data, error } = await supabase.rpc('list_device_intelligence_visits');
+        if (error) throw error;
+
+        visits = data.map((entry) => ({
+          visitedAt: entry.visited_at,
+          deviceType: entry.device_type,
+          browser: entry.browser,
+          operatingSystem: entry.operating_system,
+        }));
+      } else if (process.env.VERCEL) {
+        return res.status(503).json({
+          error: 'Device visit storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.',
+        });
+      } else {
+        const readAndPrune = async () => {
+          const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+          const storedVisits = await readDeviceVisits();
+          const retainedVisits = storedVisits
+            .filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff)
+            .slice(-1000);
+          if (retainedVisits.length !== storedVisits.length) await writeDeviceVisits(retainedVisits);
+          return retainedVisits.reverse();
+        };
+        const queuedRead = deviceVisitsWriteQueue.then(readAndPrune);
+        deviceVisitsWriteQueue = queuedRead.then(() => undefined, () => undefined);
+        visits = await queuedRead;
+      }
+
       return res.json({ visits });
     } catch (error) {
       console.error('Failed to read consented device visits:', error);

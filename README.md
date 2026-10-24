@@ -243,25 +243,26 @@ If your backend has a `package.json` file, install its dependencies:
 npm install
 ```
 
-Create a `.env` file in the backend project directory and configure the environment variables required by your application.
+Create a `.env.local` file in the project root and configure the environment variables required by your application.
 
 Example:
 
 ```env
 PORT=3000
 SUPABASE_URL=your_supabase_project_url
-SUPABASE_SERVICE_ROLE_KEY=your_server_only_secret
+SUPABASE_SECRET_KEY=your_server_only_secret
 ```
 
-**Security warning:** The service-role key is a privileged server-side secret. Never expose it in frontend JavaScript, commit it to GitHub, or share it publicly. Use a server-side environment variable and configure appropriate database access policies.
+**Security warning:** The Supabase secret/service-role key is a privileged server-side secret. Never expose it in frontend JavaScript, commit it to GitHub, or share it publicly. Use a server-side environment variable and configure appropriate database access policies.
 
 ### 4. Configure Supabase Cloud
 
 1. Create a project at https://supabase.com/.
-2. Obtain the project URL and the required API credentials from your Supabase project settings.
-3. Create the database tables required by your application.
-4. Configure Row Level Security (RLS) and appropriate database permissions.
-5. Add the required environment variables to your backend deployment.
+2. In Supabase **SQL Editor**, run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql). It creates the consented device-visit table, enables RLS without public table access, and enforces 30-day/1,000-record retention.
+3. Configure `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` for local development and in Vercel **Project Settings → Environment Variables** for every deployment environment you use. If your project still uses the legacy service-role API key, `SUPABASE_SERVICE_ROLE_KEY` is also accepted.
+4. Redeploy on Vercel after setting the variables. The device-visit API uses a server-only secret/service-role key; the Supabase publishable key is not a substitute for it and is not needed by this server-side integration.
+
+The secret/service-role key is privileged: never use a `VITE_` or `NEXT_PUBLIC_` prefix for it, put it in frontend code, or commit it. When Supabase is not configured locally, device visits use the existing local JSON-file store. On Vercel, missing Supabase configuration returns an explicit `503` instead of saving to temporary serverless storage.
 
 ### 5. Start the Backend
 

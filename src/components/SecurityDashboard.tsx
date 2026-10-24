@@ -351,15 +351,17 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
 
       {/* Top Cyber Navigation Bar */}
       <header className="border-b border-zinc-800/80 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-            <Radio className="w-4 h-4 text-[#E11D48] animate-pulse" />
-          </div>
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <img
+            src="/cysec-logo.png"
+            alt="CYSEC Cybersecurity"
+            className="w-24 shrink-0 sm:w-32 lg:w-40"
+          />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display font-extrabold text-xs sm:text-sm lg:text-base tracking-wider uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              <h1 className="font-display font-extrabold text-[10px] sm:text-xs lg:text-sm tracking-wider uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
                 Web Application &amp; API Security Dashboard
-              </span>
+              </h1>
             </div>
             <p className="text-[10px] sm:text-[11px] font-mono text-zinc-500">
               Real-time threat intelligence, domain telemetry &amp; IP locator
