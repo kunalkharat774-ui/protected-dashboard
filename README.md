@@ -22,7 +22,7 @@
 ## 📸 Preview
 
 <div align="center">
-  <img src="./screenshot.png" alt="SecureWatch Dashboard Preview" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);" />
+  <img src="https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/screenshot.png" alt="SecureWatch Dashboard Preview" width="100%" style="border-radius: 8px;" />
 </div>
 
 ---
@@ -37,7 +37,7 @@
 
 *   **🟢 Live System Status Telemetry:** Continuous monitoring indicator with real-time feedback loops.
 *   **⚡ Security Policy Initialization:** Interactive progress tracker loading automated defense layers.
-*   ### Cyber-Ops Interface: Clean, minimalist, high-tech command center aesthetic tailored for security analysts.
+*   **💻 Cyber-Ops Interface:** Clean, minimalist, high-tech command center aesthetic tailored for security analysts.
 *   **🔒 Web Crypto API Integration:** Secure client-side hashing and verification protocols.
 *   **📊 Real-Time Threat Metrics:** Dynamic telemetry readouts and performance diagnostics.
 
@@ -57,5 +57,5 @@ Follow these steps to set up and run the project locally on your machine:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/your-username/securewatch.git](https://github.com/your-username/securewatch.git)
+   git clone [https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git)
    cd securewatch
