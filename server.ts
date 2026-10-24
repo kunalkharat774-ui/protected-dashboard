@@ -839,6 +839,11 @@ export async function createApp(serveFrontend = true) {
     browser: (typeof deviceFamilies.browser)[number];
     operatingSystem: (typeof deviceFamilies.operatingSystem)[number];
   };
+  const isDeviceVisitSchemaMissing = (error: unknown) =>
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    ['PGRST202', '42883'].includes(String(error.code));
   let deviceVisitsWriteQueue = Promise.resolve();
 
   const readDeviceVisits = async (): Promise<DeviceVisit[]> => {
@@ -908,6 +913,11 @@ export async function createApp(serveFrontend = true) {
 
       return res.status(201).json({ success: true });
     } catch (error) {
+      if (isDeviceVisitSchemaMissing(error)) {
+        return res.status(503).json({
+          error: 'Supabase device-visit schema is missing. Run supabase/device-intelligence.sql in the Supabase SQL Editor.',
+        });
+      }
       console.error('Failed to save consented device visit:', error);
       return res.status(500).json({ error: 'Unable to save device visit.' });
     }
@@ -949,6 +959,11 @@ export async function createApp(serveFrontend = true) {
 
       return res.json({ visits });
     } catch (error) {
+      if (isDeviceVisitSchemaMissing(error)) {
+        return res.status(503).json({
+          error: 'Supabase device-visit schema is missing. Run supabase/device-intelligence.sql in the Supabase SQL Editor.',
+        });
+      }
       console.error('Failed to read consented device visits:', error);
       return res.status(500).json({ error: 'Unable to load device visits.' });
     }
