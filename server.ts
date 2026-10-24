@@ -190,6 +190,12 @@ export async function createApp(serveFrontend = true) {
     if (error) throw error;
   };
 
+  const isAppDataSchemaMissing = (error: unknown) =>
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    ['PGRST205', '42P01'].includes(String(error.code));
+
   const classifyApiEvent = (
     pathname: string,
     method: string,
@@ -295,9 +301,17 @@ export async function createApp(serveFrontend = true) {
         .then(() => originalJson(body))
         .catch((error: unknown) => {
           console.error(`Failed to persist ${event.event_type} for ${event.path}:`, error);
+          if (event.event_type === 'external_feed') {
+            originalJson(body);
+            return;
+          }
           if (!res.headersSent && !res.destroyed) {
             res.status(503).setHeader('Cache-Control', 'no-store');
-            originalJson({ error: 'Supabase could not save this result. Check the database migration and server configuration.' });
+            originalJson({
+              error: isAppDataSchemaMissing(error)
+                ? 'Supabase app-data schema is missing. Run supabase/app-data.sql in the Supabase SQL Editor.'
+                : 'Supabase could not save this result. Check the database migration and server configuration.',
+            });
           }
         });
       return res;
@@ -342,7 +356,11 @@ export async function createApp(serveFrontend = true) {
       return res.json({ items, retentionLimit: 250 });
     } catch (error) {
       console.error('Failed to load persisted security activity:', error);
-      return res.status(503).json({ error: 'Unable to load Supabase security activity.' });
+      return res.status(503).json({
+        error: isAppDataSchemaMissing(error)
+          ? 'Supabase app-data schema is missing. Run supabase/app-data.sql in the Supabase SQL Editor.'
+          : 'Unable to load Supabase security activity.',
+      });
     }
   });
 
@@ -852,13 +870,11 @@ export async function createApp(serveFrontend = true) {
   app.get('/api/threat-map/feed', async (req: Request, res: Response) => {
     const abortController = new AbortController();
     const abortOnDisconnect = () => abortController.abort();
-    let feedStorageFailed = false;
     const persistFeedRecord = async (event: AppDataEventInsert) => {
       try {
         await persistAppDataEvent(event);
       } catch (error) {
-        feedStorageFailed = true;
-        throw error;
+        console.error(`Failed to persist external threat feed data for ${event.path}:`, error);
       }
     };
     res.on('close', abortOnDisconnect);
@@ -960,11 +976,7 @@ export async function createApp(serveFrontend = true) {
       if (!abortController.signal.aborted) {
         console.error('Check Point live threat feed disconnected:', error);
         if (!res.headersSent) {
-          res.status(feedStorageFailed ? 503 : 502).json({
-            error: feedStorageFailed
-              ? 'Supabase could not save the Check Point live threat feed.'
-              : 'Unable to connect to the Check Point live threat feed.',
-          });
+          res.status(502).json({ error: 'Unable to connect to the Check Point live threat feed.' });
         } else if (!res.destroyed) {
           res.end();
         }
