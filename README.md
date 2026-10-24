@@ -47,7 +47,7 @@ The platform is designed around a modern dark cybersecurity interface and uses t
 
 The intended architecture allows the frontend to communicate with the Node.js backend, while the backend can interact with Supabase for database operations, event history, and other supported application features.
 
-> **Demo Disclaimer:** Animated previews and sample metrics are illustrative. Actual monitoring, security scanning, authentication, and database operations depend on the features implemented and configured in the application.
+> **Disclaimer:** Animated previews and sample metrics are illustrative. Actual monitoring, security scanning, authentication, and database operations depend on the features implemented and configured in the application.
 
 ---
 
