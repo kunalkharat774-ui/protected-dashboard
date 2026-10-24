@@ -22,7 +22,7 @@
 ## 📸 Preview
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/screenshot.png" alt="SecureWatch Dashboard Preview" width="100%" style="border-radius: 8px;" />
+  <img src="https://raw.githubusercontent.com/kunalkharat774-ui/protected-dashboard/main/screenshot.png" alt="SecureWatch Dashboard Preview" width="100%" style="border-radius: 8px;" />
 </div>
 
 ---
@@ -57,5 +57,5 @@ Follow these steps to set up and run the project locally on your machine:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git)
-   cd securewatch
+   git clone [https://github.com/kunalkharat774-ui/protected-dashboard.git](https://github.com/kunalkharat774-ui/protected-dashboard.git)
+   cd protected-dashboard
