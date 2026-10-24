@@ -3,10 +3,61 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 export type DeviceType = 'desktop' | 'mobile' | 'tablet';
 export type Browser = 'Chrome' | 'Edge' | 'Firefox' | 'Opera' | 'Safari' | 'Other';
 export type OperatingSystem = 'Android' | 'ChromeOS' | 'iOS' | 'Linux' | 'macOS' | 'Other' | 'Windows';
+export type AppDataEventType = 'api_activity' | 'scan_result' | 'file_scan' | 'external_feed';
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 type Database = {
   public: {
     Tables: {
+      app_data_events: {
+        Row: {
+          id: number;
+          created_at: string;
+          event_type: AppDataEventType;
+          method: string;
+          path: string;
+          status_code: number;
+          request_data: Json;
+          result_data: Json;
+          category: string;
+          severity: 'info' | 'medium' | 'high';
+          kind: 'observed' | 'detection';
+        };
+        Insert: {
+          id?: never;
+          created_at?: string;
+          event_type: AppDataEventType;
+          method: string;
+          path: string;
+          status_code: number;
+          request_data: Json;
+          result_data: Json;
+          category: string;
+          severity: 'info' | 'medium' | 'high';
+          kind: 'observed' | 'detection';
+        };
+        Update: {
+          id?: never;
+          created_at?: string;
+          event_type?: AppDataEventType;
+          method?: string;
+          path?: string;
+          status_code?: number;
+          request_data?: Json;
+          result_data?: Json;
+          category?: string;
+          severity?: 'info' | 'medium' | 'high';
+          kind?: 'observed' | 'detection';
+        };
+        Relationships: [];
+      };
       device_intelligence_visits: {
         Row: {
           id: number;
@@ -56,6 +107,8 @@ type Database = {
     CompositeTypes: Record<string, never>;
   };
 };
+
+export type AppDataEventInsert = Database['public']['Tables']['app_data_events']['Insert'];
 
 let supabaseClient: SupabaseClient<Database> | undefined;
 

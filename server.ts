@@ -1,17 +1,12 @@
 import express, { Request, Response } from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import https from 'https';
 import http from 'http';
 import tls from 'tls';
 import net from 'net';
-import crypto from 'crypto';
 import dns from 'dns';
 import { promisify } from 'util';
-import fs from 'fs/promises';
-import { config as loadEnv } from 'dotenv';
-import { getSupabaseAdminClient } from './lib/supabase';
+import { getSupabaseAdminClient, type AppDataEventInsert, type AppDataEventType, type Json } from './lib/supabase.js';
 
 const resolve4Async = promisify(dns.resolve4);
 const resolve6Async = promisify(dns.resolve6);
@@ -20,11 +15,6 @@ const resolveTxtAsync = promisify(dns.resolveTxt);
 const resolveNsAsync = promisify(dns.resolveNs);
 const resolveSoaAsync = promisify(dns.resolveSoa);
 const resolveCnameAsync = promisify(dns.resolveCname);
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-loadEnv({ path: path.resolve(__dirname, '.env.local') });
-loadEnv({ path: path.resolve(__dirname, '..', '.env.local') });
 
 // Helper function: Query Port 43 WHOIS Socket
 function queryWhoisSocket(server: string, query: string, timeoutMs = 6000): Promise<string> {
@@ -169,97 +159,191 @@ export async function createApp(serveFrontend = true) {
 
   app.use(express.json());
 
-  type SecurityLogEntry = {
-    id: number;
-    occurredAt: string;
-    method: string;
-    path: string;
-    statusCode: number;
-    category: string;
-    severity: 'info' | 'medium' | 'high';
-    kind: 'observed' | 'detection';
-  };
-  const securityLogs: SecurityLogEntry[] = [];
   const recentClientErrors = new Map<string, number[]>();
-  let nextSecurityLogId = 1;
+  const sensitiveField = /(authorization|cookie|password|secret|token|api[_-]?key|credential|private[_-]?key|file[_-]?(content|data)|rawbytes|hexdump|buffer|base64)/i;
+
+  const sanitizeForStorage = (value: unknown): Json => {
+    if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : String(value);
+    if (typeof value === 'bigint') return value.toString();
+    if (Buffer.isBuffer(value) || value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+      return '[binary content omitted]';
+    }
+    if (Array.isArray(value)) return value.map(sanitizeForStorage);
+    if (typeof value === 'object') {
+      const sanitized: { [key: string]: Json } = {};
+      for (const [key, entry] of Object.entries(value)) {
+        if (sensitiveField.test(key) || entry === undefined) continue;
+        sanitized[key] = sanitizeForStorage(entry);
+      }
+      return sanitized;
+    }
+    return String(value);
+  };
+
+  const persistAppDataEvent = async (event: AppDataEventInsert) => {
+    const supabase = getSupabaseAdminClient();
+    if (!supabase) {
+      throw new Error('Supabase storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.');
+    }
+    const { error } = await supabase.from('app_data_events').insert(event);
+    if (error) throw error;
+  };
+
+  const classifyApiEvent = (
+    pathname: string,
+    method: string,
+    statusCode: number,
+    sourceKey: string,
+  ): Pick<AppDataEventInsert, 'category' | 'severity' | 'kind'> => {
+    const normalizedPath = pathname.toLowerCase();
+    let category = 'API activity';
+    let severity: AppDataEventInsert['severity'] = 'info';
+    let kind: AppDataEventInsert['kind'] = 'observed';
+
+    if (/(^|\/)(\.env(?:\/|\.|$)|\.git(?:\/|$)|\.aws(?:\/|$)|wp-admin(?:\/|$)|wp-login\.php(?:\/|$)|phpmyadmin(?:\/|$)|adminer(?:\.php|\/|$))/.test(normalizedPath) ||
+      /\.\.(?:\/|\\)/.test(normalizedPath)) {
+      category = 'Sensitive path probe';
+      severity = 'high';
+      kind = 'detection';
+    } else if (['TRACE', 'TRACK', 'CONNECT'].includes(method)) {
+      category = 'Unusual HTTP method';
+      severity = 'high';
+      kind = 'detection';
+    } else if (pathname === '/api/scan-file-security') {
+      category = 'File scan metadata';
+    } else if (/^\/api\/(monitor\/probe|scan\/vulnerability|email\/breach-check|domain\/lookup|ip\/lookup|url-reputation)$/.test(pathname)) {
+      category = 'Security scan result';
+    } else if (pathname.startsWith('/api/threat-map/') || pathname === '/api/password/breach-check') {
+      category = 'External threat intelligence';
+    }
+
+    const now = Date.now();
+    const cutoff = now - 60_000;
+    for (const [key, timestamps] of recentClientErrors) {
+      const recent = timestamps.filter((timestamp) => timestamp >= cutoff);
+      if (recent.length) recentClientErrors.set(key, recent);
+      else recentClientErrors.delete(key);
+    }
+
+    if (statusCode >= 400 && statusCode < 500) {
+      const timestamps = recentClientErrors.get(sourceKey) || [];
+      timestamps.push(now);
+      recentClientErrors.set(sourceKey, timestamps);
+      if (timestamps.length >= 12 && kind !== 'detection') {
+        category = 'Repeated client-error requests';
+        severity = 'medium';
+        kind = 'detection';
+      } else if (kind === 'observed') {
+        category = 'Client error response';
+      }
+    } else if (statusCode >= 500 && kind === 'observed') {
+      category = 'Server error response';
+      severity = 'medium';
+    }
+
+    return { category, severity, kind };
+  };
+
+  const getApiEventType = (pathname: string): AppDataEventType => {
+    if (pathname === '/api/scan-file-security') return 'file_scan';
+    if (/^\/api\/(monitor\/probe|scan\/vulnerability|email\/breach-check|domain\/lookup|ip\/lookup|url-reputation)$/.test(pathname)) {
+      return 'scan_result';
+    }
+    if (pathname.startsWith('/api/threat-map/') || pathname === '/api/password/breach-check') {
+      return 'external_feed';
+    }
+    return 'api_activity';
+  };
 
   app.use((req, res, next) => {
-    const rawPath = req.originalUrl.split('?')[0] || '/';
-    if (rawPath === '/api/security-logs' || rawPath === '/api/threat-map/feed') {
+    const parsedUrl = new URL(req.originalUrl, 'http://localhost');
+    const pathname = parsedUrl.pathname;
+    const shouldPersist = pathname.startsWith('/api/') &&
+      pathname !== '/api/security-logs' &&
+      pathname !== '/api/threat-map/feed';
+
+    if (!shouldPersist) {
       next();
       return;
     }
 
-    let decodedPath = rawPath;
-    try {
-      decodedPath = decodeURIComponent(rawPath);
-    } catch {
-      // Keep the raw path when a scanner sends malformed percent-encoding.
-    }
-
-    res.once('finish', () => {
-      const normalizedPath = decodedPath.toLowerCase();
-      let category = 'Request observed';
-      let severity: SecurityLogEntry['severity'] = 'info';
-      let kind: SecurityLogEntry['kind'] = 'observed';
-
-      if (/(^|\/)(\.env(?:\/|\.|$)|\.git(?:\/|$)|\.aws(?:\/|$)|wp-admin(?:\/|$)|wp-login\.php(?:\/|$)|phpmyadmin(?:\/|$)|adminer(?:\.php|\/|$))/.test(normalizedPath) ||
-        /\.\.(?:\/|\\)/.test(normalizedPath)) {
-        category = 'Sensitive path probe';
-        severity = 'high';
-        kind = 'detection';
-      } else if (['TRACE', 'TRACK', 'CONNECT'].includes(req.method.toUpperCase())) {
-        category = 'Unusual HTTP method';
-        severity = 'high';
-        kind = 'detection';
-      }
-
-      const statusCode = res.statusCode;
-      const sourceKey = req.socket.remoteAddress || 'unknown';
-      const now = Date.now();
-      const cutoff = now - 60_000;
-
-      for (const [key, timestamps] of recentClientErrors) {
-        const recent = timestamps.filter((timestamp) => timestamp >= cutoff);
-        if (recent.length) recentClientErrors.set(key, recent);
-        else recentClientErrors.delete(key);
-      }
-
-      if (statusCode >= 400 && statusCode < 500) {
-        const timestamps = recentClientErrors.get(sourceKey) || [];
-        timestamps.push(now);
-        recentClientErrors.set(sourceKey, timestamps);
-        if (timestamps.length >= 12 && kind !== 'detection') {
-          category = 'Repeated client-error requests';
-          severity = 'medium';
-          kind = 'detection';
-        } else if (kind === 'observed') {
-          category = 'Client error response';
-        }
-      } else if (statusCode >= 500 && kind === 'observed') {
-        category = 'Server error response';
-        severity = 'medium';
-      }
-
-      securityLogs.unshift({
-        id: nextSecurityLogId++,
-        occurredAt: new Date().toISOString(),
-        method: req.method.toUpperCase(),
-        path: rawPath.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 200),
-        statusCode,
-        category,
-        severity,
-        kind,
-      });
-      if (securityLogs.length > 250) securityLogs.length = 250;
+    const requestData = sanitizeForStorage({
+      query: Object.fromEntries(parsedUrl.searchParams.entries()),
+      body: req.body ?? null,
     });
+    const originalJson = res.json.bind(res);
+    res.json = ((body?: unknown) => {
+      const statusCode = res.statusCode;
+      const classification = classifyApiEvent(
+        pathname,
+        req.method.toUpperCase(),
+        statusCode,
+        req.socket.remoteAddress || 'unknown',
+      );
+      const event: AppDataEventInsert = {
+        event_type: getApiEventType(pathname),
+        method: req.method.toUpperCase(),
+        path: pathname.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 200),
+        status_code: statusCode,
+        request_data: requestData,
+        result_data: sanitizeForStorage(body),
+        ...classification,
+      };
+
+      void persistAppDataEvent(event)
+        .then(() => originalJson(body))
+        .catch((error: unknown) => {
+          console.error(`Failed to persist ${event.event_type} for ${event.path}:`, error);
+          if (!res.headersSent && !res.destroyed) {
+            res.status(503).setHeader('Cache-Control', 'no-store');
+            originalJson({ error: 'Supabase could not save this result. Check the database migration and server configuration.' });
+          }
+        });
+      return res;
+    }) as Response['json'];
 
     next();
   });
 
-  app.get('/api/security-logs', (_req: Request, res: Response) => {
+  app.get('/api/security-logs', async (_req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store');
-    return res.json({ items: securityLogs, retentionLimit: 250 });
+    try {
+      const supabase = getSupabaseAdminClient();
+      if (!supabase) {
+        return res.status(503).json({ error: 'Supabase storage is not configured.' });
+      }
+
+      const retentionCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const { error: pruneError } = await supabase
+        .from('app_data_events')
+        .delete()
+        .lt('created_at', retentionCutoff);
+      if (pruneError) throw pruneError;
+
+      const { data, error } = await supabase
+        .from('app_data_events')
+        .select('id,created_at,method,path,status_code,category,severity,kind')
+        .gte('created_at', retentionCutoff)
+        .order('created_at', { ascending: false })
+        .limit(250);
+      if (error) throw error;
+
+      const items = data.map((entry) => ({
+        id: entry.id,
+        occurredAt: entry.created_at,
+        method: entry.method,
+        path: entry.path,
+        statusCode: entry.status_code,
+        category: entry.category,
+        severity: entry.severity,
+        kind: entry.kind,
+      }));
+      return res.json({ items, retentionLimit: 250 });
+    } catch (error) {
+      console.error('Failed to load persisted security activity:', error);
+      return res.status(503).json({ error: 'Unable to load Supabase security activity.' });
+    }
   });
 
   app.get('/api/password/breach-check', async (req: Request, res: Response) => {
@@ -768,6 +852,15 @@ export async function createApp(serveFrontend = true) {
   app.get('/api/threat-map/feed', async (req: Request, res: Response) => {
     const abortController = new AbortController();
     const abortOnDisconnect = () => abortController.abort();
+    let feedStorageFailed = false;
+    const persistFeedRecord = async (event: AppDataEventInsert) => {
+      try {
+        await persistAppDataEvent(event);
+      } catch (error) {
+        feedStorageFailed = true;
+        throw error;
+      }
+    };
     res.on('close', abortOnDisconnect);
 
     try {
@@ -779,6 +872,18 @@ export async function createApp(serveFrontend = true) {
         return res.status(502).json({ error: `Check Point live feed returned HTTP ${upstream.status}.` });
       }
 
+      await persistFeedRecord({
+        event_type: 'external_feed',
+        method: 'GET',
+        path: '/api/threat-map/feed',
+        status_code: 200,
+        request_data: { source: 'Check Point ThreatCloud' },
+        result_data: { connected: true },
+        category: 'External threat intelligence',
+        severity: 'info',
+        kind: 'observed',
+      });
+
       res.status(200);
       res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -787,10 +892,50 @@ export async function createApp(serveFrontend = true) {
       res.flushHeaders();
 
       const reader = upstream.body.getReader();
+      const decoder = new TextDecoder();
+      const feedEvents: string[] = [];
+      let pendingSseText = '';
+      let lastPersistedAt = Date.now();
+      const collectFeedEvents = (text: string) => {
+        pendingSseText += text;
+        const lines = pendingSseText.split(/\r?\n/);
+        pendingSseText = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          const eventData = line.slice(5).trim();
+          if (eventData) feedEvents.push(eventData);
+        }
+      };
+      const persistFeedEvents = async (count = feedEvents.length) => {
+        if (count === 0) return;
+        const events = feedEvents.splice(0, count);
+        await persistFeedRecord({
+          event_type: 'external_feed',
+          method: 'GET',
+          path: '/api/threat-map/feed',
+          status_code: 200,
+          request_data: { source: 'Check Point ThreatCloud' },
+          result_data: { events },
+          category: 'External threat intelligence',
+          severity: 'info',
+          kind: 'observed',
+        });
+        lastPersistedAt = Date.now();
+      };
       try {
         while (!res.destroyed) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            collectFeedEvents(decoder.decode());
+            if (pendingSseText.startsWith('data:')) {
+              const eventData = pendingSseText.slice(5).trim();
+              if (eventData) feedEvents.push(eventData);
+            }
+            break;
+          }
+          collectFeedEvents(decoder.decode(value, { stream: true }));
+          while (feedEvents.length >= 25) await persistFeedEvents(25);
+          if (feedEvents.length && Date.now() - lastPersistedAt >= 5000) await persistFeedEvents();
           if (!res.write(Buffer.from(value))) {
             await new Promise<void>((resolve) => {
               const resume = () => {
@@ -805,13 +950,21 @@ export async function createApp(serveFrontend = true) {
         }
         if (!res.destroyed) res.end();
       } finally {
-        reader.releaseLock();
+        try {
+          await persistFeedEvents();
+        } finally {
+          reader.releaseLock();
+        }
       }
     } catch (error) {
       if (!abortController.signal.aborted) {
         console.error('Check Point live threat feed disconnected:', error);
         if (!res.headersSent) {
-          res.status(502).json({ error: 'Unable to connect to the Check Point live threat feed.' });
+          res.status(feedStorageFailed ? 503 : 502).json({
+            error: feedStorageFailed
+              ? 'Supabase could not save the Check Point live threat feed.'
+              : 'Unable to connect to the Check Point live threat feed.',
+          });
         } else if (!res.destroyed) {
           res.end();
         }
@@ -822,12 +975,6 @@ export async function createApp(serveFrontend = true) {
   });
 
   // ================= CONSENT-BASED DEVICE INTELLIGENCE =================
-  const deviceVisitsFile = path.resolve(
-    process.env.DEVICE_INTELLIGENCE_STORAGE_PATH ||
-      (process.env.VERCEL
-        ? path.join('/tmp', 'device-visits.json')
-        : path.resolve(process.cwd(), 'data', 'device-visits.json'))
-  );
   const deviceFamilies = {
     deviceType: ['desktop', 'mobile', 'tablet'],
     browser: ['Chrome', 'Edge', 'Firefox', 'Opera', 'Safari', 'Other'],
@@ -844,26 +991,6 @@ export async function createApp(serveFrontend = true) {
     error !== null &&
     'code' in error &&
     ['PGRST202', '42883'].includes(String(error.code));
-  let deviceVisitsWriteQueue = Promise.resolve();
-
-  const readDeviceVisits = async (): Promise<DeviceVisit[]> => {
-    try {
-      const contents = await fs.readFile(deviceVisitsFile, 'utf8');
-      const parsed: unknown = JSON.parse(contents);
-      if (!Array.isArray(parsed)) throw new Error('Device visit data is not an array');
-      return parsed as DeviceVisit[];
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-      throw error;
-    }
-  };
-  const writeDeviceVisits = async (visits: DeviceVisit[]) => {
-    await fs.mkdir(path.dirname(deviceVisitsFile), { recursive: true });
-    const temporaryFile = `${deviceVisitsFile}.${crypto.randomUUID()}.tmp`;
-    await fs.writeFile(temporaryFile, JSON.stringify(visits, null, 2), 'utf8');
-    await fs.rename(temporaryFile, deviceVisitsFile);
-  };
-
   app.post('/api/device-intelligence/visits', async (req: Request, res: Response) => {
     const { consent, deviceType, browser, operatingSystem } = req.body ?? {};
     const validValue = (key: keyof typeof deviceFamilies, value: unknown) =>
@@ -880,36 +1007,17 @@ export async function createApp(serveFrontend = true) {
 
     try {
       const supabase = getSupabaseAdminClient();
-      if (supabase) {
-        const { error } = await supabase.rpc('record_device_intelligence_visit', {
-          p_device_type: deviceType,
-          p_browser: browser,
-          p_operating_system: operatingSystem,
-        });
-        if (error) throw error;
-      } else if (process.env.VERCEL) {
+      if (!supabase) {
         return res.status(503).json({
           error: 'Device visit storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.',
         });
-      } else {
-        const visit: DeviceVisit = {
-          visitedAt: new Date().toISOString(),
-          deviceType,
-          browser,
-          operatingSystem,
-        };
-        const saveVisit = async () => {
-          const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-          const visits = (await readDeviceVisits())
-            .filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff)
-            .concat(visit)
-            .slice(-1000);
-          await writeDeviceVisits(visits);
-        };
-        const queuedSave = deviceVisitsWriteQueue.then(saveVisit);
-        deviceVisitsWriteQueue = queuedSave.then(() => undefined, () => undefined);
-        await queuedSave;
       }
+      const { error } = await supabase.rpc('record_device_intelligence_visit', {
+        p_device_type: deviceType,
+        p_browser: browser,
+        p_operating_system: operatingSystem,
+      });
+      if (error) throw error;
 
       return res.status(201).json({ success: true });
     } catch (error) {
@@ -927,35 +1035,20 @@ export async function createApp(serveFrontend = true) {
     res.setHeader('Cache-Control', 'no-store');
     try {
       const supabase = getSupabaseAdminClient();
-      let visits: DeviceVisit[];
-      if (supabase) {
-        const { data, error } = await supabase.rpc('list_device_intelligence_visits');
-        if (error) throw error;
-
-        visits = data.map((entry) => ({
-          visitedAt: entry.visited_at,
-          deviceType: entry.device_type,
-          browser: entry.browser,
-          operatingSystem: entry.operating_system,
-        }));
-      } else if (process.env.VERCEL) {
+      if (!supabase) {
         return res.status(503).json({
           error: 'Device visit storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.',
         });
-      } else {
-        const readAndPrune = async () => {
-          const retentionCutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-          const storedVisits = await readDeviceVisits();
-          const retainedVisits = storedVisits
-            .filter((entry) => Date.parse(entry.visitedAt) >= retentionCutoff)
-            .slice(-1000);
-          if (retainedVisits.length !== storedVisits.length) await writeDeviceVisits(retainedVisits);
-          return retainedVisits.reverse();
-        };
-        const queuedRead = deviceVisitsWriteQueue.then(readAndPrune);
-        deviceVisitsWriteQueue = queuedRead.then(() => undefined, () => undefined);
-        visits = await queuedRead;
       }
+      const { data, error } = await supabase.rpc('list_device_intelligence_visits');
+      if (error) throw error;
+
+      const visits: DeviceVisit[] = data.map((entry) => ({
+        visitedAt: entry.visited_at,
+        deviceType: entry.device_type,
+        browser: entry.browser,
+        operatingSystem: entry.operating_system,
+      }));
 
       return res.json({ visits });
     } catch (error) {
@@ -967,6 +1060,63 @@ export async function createApp(serveFrontend = true) {
       console.error('Failed to read consented device visits:', error);
       return res.status(500).json({ error: 'Unable to load device visits.' });
     }
+  });
+
+  app.post('/api/scan-file-security', (req: Request, res: Response) => {
+    const {
+      fileName,
+      fileSize,
+      fileType,
+      fileHash,
+      entropy,
+      status,
+      threatScore,
+      detectedThreats,
+      sandboxVerdict,
+    } = req.body ?? {};
+    const validStatuses = ['CLEAN', 'SUSPICIOUS', 'MALICIOUS'];
+
+    if (
+      typeof fileName !== 'string' ||
+      !fileName.trim() ||
+      fileName.length > 255 ||
+      !Number.isSafeInteger(fileSize) ||
+      fileSize < 0 ||
+      typeof fileType !== 'string' ||
+      fileType.length > 200 ||
+      typeof fileHash !== 'string' ||
+      !/^[a-f0-9]{64}$/i.test(fileHash) ||
+      typeof entropy !== 'number' ||
+      !Number.isFinite(entropy) ||
+      entropy < 0 ||
+      entropy > 8 ||
+      !validStatuses.includes(status) ||
+      typeof threatScore !== 'number' ||
+      !Number.isFinite(threatScore) ||
+      threatScore < 0 ||
+      threatScore > 100 ||
+      !Array.isArray(detectedThreats) ||
+      detectedThreats.length > 50 ||
+      !detectedThreats.every((entry: unknown) => typeof entry === 'string' && entry.length <= 500) ||
+      typeof sandboxVerdict !== 'string' ||
+      sandboxVerdict.length > 2000
+    ) {
+      return res.status(400).json({ error: 'Valid file metadata and scan results are required.' });
+    }
+
+    return res.status(201).json({
+      success: true,
+      fileName: fileName.trim(),
+      fileSize,
+      fileType,
+      fileHash: fileHash.toLowerCase(),
+      entropy,
+      status,
+      threatScore,
+      detectedThreats,
+      sandboxVerdict,
+      scannedAt: new Date().toISOString(),
+    });
   });
 
   // ================= 1. REAL API LIVE MONITORING & PROBE =================
@@ -2061,60 +2211,15 @@ export async function createApp(serveFrontend = true) {
     }
   });
 
-  // Mount Vite dev middleware in development
+  // The standalone dev-server mounts Vite; serverless functions must not load it.
   if (serveFrontend) {
-    if (process.env.NODE_ENV !== 'production') {
-      const vite = await createViteServer({
-        server: { middlewareMode: true },
-        appType: 'spa',
-      });
-      app.use(vite.middlewares);
-    } else {
-      app.use(express.static(path.resolve(__dirname, 'dist')));
+    if (process.env.NODE_ENV === 'production') {
+      app.use(express.static(path.resolve(process.cwd(), 'dist')));
       app.get('*', (_req, res) => {
-        res.sendFile(path.resolve(__dirname, 'dist/index.html'));
+        res.sendFile(path.resolve(process.cwd(), 'dist/index.html'));
       });
     }
   }
 
   return app;
-}
-
-async function startServer() {
-  if (process.argv.includes('--production')) {
-    process.env.NODE_ENV = 'production';
-  }
-
-  const app = await createApp();
-  const preferredPort = Number.parseInt(process.env.PORT || '5173', 10);
-  const requestedPort = Number.isFinite(preferredPort) && preferredPort > 0 ? preferredPort : 5173;
-
-  const listenOnPort = (port: number) =>
-    new Promise<number>((resolve, reject) => {
-      const server = app.listen(port, () => {
-        resolve(port);
-      });
-
-      server.on('error', (error: NodeJS.ErrnoException) => {
-        if (error.code === 'EADDRINUSE') {
-          const nextPort = port + 1;
-          if (nextPort - requestedPort <= 20) {
-            listenOnPort(nextPort).then(resolve).catch(reject);
-            return;
-          }
-        }
-
-        reject(error);
-      });
-    });
-
-  const PORT = await listenOnPort(requestedPort);
-  console.log(`Security Dashboard Server listening on http://0.0.0.0:${PORT}`);
-}
-
-if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
-  startServer().catch((err) => {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  });
 }

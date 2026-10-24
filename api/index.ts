@@ -1,4 +1,4 @@
-import { createApiHandler } from '../vercel-api';
+import { createApiHandler } from '../vercel-api.js';
 
 export const config = {
   maxDuration: 300,

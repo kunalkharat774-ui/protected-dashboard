@@ -6,9 +6,11 @@ coverage/
 /data/
 .DS_Store
 *.log
-.env*
+.env.local
+.env.*.local
 !.env.example
 
 .vercel
 
 .vercel
+.env*

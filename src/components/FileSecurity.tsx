@@ -960,38 +960,39 @@ Status: 100% Authentic Restored Document.
         ? 'Suspicious markers detected. Recommend inspecting file in isolated sandbox environment.'
         : 'QUARANTINE IMMEDIATE: Malicious signatures detected. Do not execute or open on endpoint systems.';
 
-      try {
-        const resp = await fetch('/api/scan-file-security', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: scanFile.name,
-            fileSize: scanFile.size,
-            fileType: scanFile.type || 'application/octet-stream',
-            fileHash: sha256,
-            entropy,
-          }),
-        });
-        if (resp.ok) {
-          const apiData = await resp.json();
-          if (apiData.status) status = apiData.status;
-          if (typeof apiData.threatScore === 'number') threatScore = apiData.threatScore;
-          if (Array.isArray(apiData.detectedThreats) && apiData.detectedThreats.length > 0) {
-            // merge unique threats
-            apiData.detectedThreats.forEach((t: string) => {
-              if (!detectedThreats.includes(t)) detectedThreats.push(t);
-            });
-          }
-          if (apiData.sandboxVerdict) sandboxVerdict = apiData.sandboxVerdict;
-        }
-      } catch {
-        // Continue with client-side heuristic security analysis
-      }
-
       if (detectedThreats.length === 0) {
         detectedThreats.push('Zero malicious binary signatures or exploit patterns detected.');
         detectedThreats.push('File format structure and magic byte headers validated.');
         detectedThreats.push('SHA-256 integrity checksum recorded and verified.');
+      }
+
+      const resp = await fetch('/api/scan-file-security', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: scanFile.name,
+          fileSize: scanFile.size,
+          fileType: scanFile.type || 'application/octet-stream',
+          fileHash: sha256,
+          entropy,
+          status,
+          threatScore,
+          detectedThreats,
+          sandboxVerdict,
+        }),
+      });
+      const apiData: unknown = await resp.json();
+      if (!resp.ok) {
+        const message = apiData && typeof apiData === 'object' && 'error' in apiData && typeof apiData.error === 'string'
+          ? apiData.error
+          : resp.statusText;
+        throw new Error(`Could not save file scan metadata to Supabase: ${message}`);
+      }
+      if (!apiData || typeof apiData !== 'object') {
+        throw new Error('The file scan storage API returned an invalid response.');
+      }
+      if (!('success' in apiData) || apiData.success !== true) {
+        throw new Error('Supabase did not confirm that the file scan was saved.');
       }
 
       setScanResult({

@@ -258,11 +258,11 @@ SUPABASE_SECRET_KEY=your_server_only_secret
 ### 4. Configure Supabase Cloud
 
 1. Create a project at https://supabase.com/.
-2. In Supabase **SQL Editor**, run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql). It creates the consented device-visit table, enables RLS without public table access, and enforces 30-day/1,000-record retention.
+2. In Supabase **SQL Editor**, run [`supabase/app-data.sql`](./supabase/app-data.sql). This creates the private application event table and configures 90-day retention. Run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql) only if you still use the legacy device-visit API.
 3. Configure `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` for local development and in Vercel **Project Settings → Environment Variables** for every deployment environment you use. If your project still uses the legacy service-role API key, `SUPABASE_SERVICE_ROLE_KEY` is also accepted.
-4. Redeploy on Vercel after setting the variables. The device-visit API uses a server-only secret/service-role key; the Supabase publishable key is not a substitute for it and is not needed by this server-side integration.
+4. Redeploy on Vercel after setting the variables. API requests that return scan results are stored before the result is sent to the browser; if Supabase storage fails, the API reports an error instead of silently claiming that the result was saved.
 
-The secret/service-role key is privileged: never use a `VITE_` or `NEXT_PUBLIC_` prefix for it, put it in frontend code, or commit it. When Supabase is not configured locally, device visits use the existing local JSON-file store. On Vercel, missing Supabase configuration returns an explicit `503` instead of saving to temporary serverless storage.
+The secret/service-role key is privileged: never use a `VITE_` or `NEXT_PUBLIC_` prefix for it, put it in frontend code, or commit it. Stored records are shared in one project-wide history (the dashboard does not currently authenticate individual users) and include submitted scan targets and results. Authorization and credential fields are redacted. Uploaded file contents are never sent to Supabase; only the file name, size, type, SHA-256 hash, and scan result are stored. Data stays in Supabase for up to 90 days. Configure authentication and per-user row-level access before using this dashboard for private or multi-tenant data.
 
 ### 5. Start the Backend
 

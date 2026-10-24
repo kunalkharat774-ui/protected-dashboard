@@ -47,7 +47,6 @@ import {
 import { IpGoogleMap, IpLocationData } from './IpGoogleMap';
 import { CyberMetallicButton } from './CyberMetallicButton';
 import { TextEncryptView } from './TextEncryptView';
-import { DeviceIntelligence } from './DeviceIntelligence';
 import type { FileActivity } from '../types';
 
 const SteganographyView = React.lazy(() =>
@@ -77,7 +76,7 @@ const Globe3DMap = React.lazy(() =>
 
 const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
-type ActiveTab = 'monitoring' | 'vulnerability' | 'breach' | 'domain' | 'ip' | 'feeds' | 'network' | 'alerts' | 'reports' | 'urlReputation' | 'crypto' | 'steganography' | 'password' | 'files' | 'devices';
+type ActiveTab = 'monitoring' | 'vulnerability' | 'breach' | 'domain' | 'ip' | 'feeds' | 'network' | 'alerts' | 'reports' | 'urlReputation' | 'crypto' | 'steganography' | 'password' | 'files';
 
 interface ApiProbeResult {
   timestamp: string;
@@ -451,16 +450,6 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
           </CyberMetallicButton>
 
           <CyberMetallicButton
-            onClick={() => setActiveTab('devices')}
-            variant={activeTab === 'devices' ? 'cyan' : 'zinc'}
-            size="sm"
-            className="whitespace-nowrap"
-          >
-            <Fingerprint className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Device Intelligence</span>
-          </CyberMetallicButton>
-
-          <CyberMetallicButton
             onClick={() => setActiveTab('crypto')}
             variant={activeTab === 'crypto' ? 'blue' : 'zinc'}
             size="sm"
@@ -640,8 +629,6 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
             <UrlReputation />
           </React.Suspense>
         )}
-
-        {activeTab === 'devices' && <DeviceIntelligence />}
 
         {activeTab === 'feeds' && (
           <React.Suspense
