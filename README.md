@@ -258,7 +258,7 @@ SUPABASE_SECRET_KEY=your_server_only_secret
 ### 4. Configure Supabase Cloud
 
 1. Create a project at https://supabase.com/.
-2. In Supabase **SQL Editor**, run [`supabase/app-data.sql`](./supabase/app-data.sql). This creates the private application event table and configures 90-day retention. Run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql) only if you still use the legacy device-visit API.
+2. In Supabase **SQL Editor**, run [`supabase/app-data.sql`](./supabase/app-data.sql). It creates a private application event table with 90-day retention. Run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql) only if you still use the legacy device-visit API.
 3. Configure `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` for local development and in Vercel **Project Settings → Environment Variables** for every deployment environment you use. If your project still uses the legacy service-role API key, `SUPABASE_SERVICE_ROLE_KEY` is also accepted.
 4. Redeploy on Vercel after setting the variables. API requests that return scan results are stored before the result is sent to the browser; if Supabase storage fails, the API reports an error instead of silently claiming that the result was saved.
 

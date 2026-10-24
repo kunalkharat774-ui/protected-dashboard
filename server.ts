@@ -309,7 +309,7 @@ export async function createApp(serveFrontend = true) {
             res.status(503).setHeader('Cache-Control', 'no-store');
             originalJson({
               error: isAppDataSchemaMissing(error)
-                ? 'Supabase app-data schema is missing. Run supabase/app-data.sql in the Supabase SQL Editor.'
+                ? 'Supabase app-data schema is missing. Create the required app_data_events table in the Supabase SQL Editor.'
                 : 'Supabase could not save this result. Check the database migration and server configuration.',
             });
           }
@@ -358,7 +358,7 @@ export async function createApp(serveFrontend = true) {
       console.error('Failed to load persisted security activity:', error);
       return res.status(503).json({
         error: isAppDataSchemaMissing(error)
-          ? 'Supabase app-data schema is missing. Run supabase/app-data.sql in the Supabase SQL Editor.'
+          ? 'Supabase app-data schema is missing. Create the required app_data_events table in the Supabase SQL Editor.'
           : 'Unable to load Supabase security activity.',
       });
     }
