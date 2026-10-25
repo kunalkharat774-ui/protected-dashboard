@@ -530,7 +530,11 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
       </div>
 
       {/* Main Content Area */}
-      <main className="min-w-0 flex-1 px-3 py-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full relative z-10">
+      <main className={`min-w-0 relative z-10 ${
+        activeTab === 'feeds'
+          ? 'h-[calc(100dvh-180px)] min-h-[420px] w-full max-w-none p-0'
+          : 'mx-auto w-full max-w-7xl flex-1 px-3 py-4 sm:p-6 lg:p-8'
+      }`}>
         {activeTab === 'files' && (
           <div className="space-y-5">
             {fileActivities.length > 0 && (
@@ -631,7 +635,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
         {activeTab === 'feeds' && (
           <React.Suspense
             fallback={
-              <div className="flex h-[620px] items-center justify-center rounded-xl border border-cyan-900/60 bg-black font-mono text-sm text-cyan-300">
+              <div className="flex h-full min-h-[420px] items-center justify-center rounded-xl border border-cyan-900/60 bg-black font-mono text-sm text-cyan-300">
                 Loading live country feeds...
               </div>
             }

@@ -1194,12 +1194,12 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
       className={`
         ${isFullscreen
           ? 'fixed inset-0 z-50 w-screen h-screen bg-black flex flex-col p-4'
-          : 'fixed bottom-5 right-5 w-[92vw] sm:w-[480px] md:w-[520px] z-40 flex flex-col'
+          : 'absolute bottom-4 right-4 z-40 flex w-[92%] flex-col sm:w-[min(48%,520px)]'
         }
         transition-all duration-300 ease-out select-none
       `}
     >
-      <div className="relative flex flex-col w-full h-full bg-[#02050f]/95 border-2 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.3)] rounded-lg overflow-hidden backdrop-blur-md">
+      <div className="relative flex max-h-full flex-col w-full h-full bg-[#02050f]/95 border-2 border-cyan-500/80 shadow-[0_0_35px_rgba(6,182,212,0.3)] rounded-lg overflow-hidden backdrop-blur-md">
         
         {/* Tactical Corner Brackets */}
         <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-400 z-30 pointer-events-none" />
@@ -1270,7 +1270,7 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
         </div>
 
         {/* Video Chassis: 132% scale and -16% offset to hide all YouTube UI */}
-        <div className="relative flex-1 w-full bg-black overflow-hidden group min-h-[240px] sm:min-h-[290px]">
+        <div className="relative flex-1 w-full bg-black overflow-hidden group min-h-[180px] sm:min-h-[290px]">
           <div
             className="absolute inset-0 w-full h-full pointer-events-auto"
             style={getFilterStyle()}
@@ -1889,7 +1889,7 @@ export default function App() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-black text-slate-100 font-sans select-none">
+    <main className="relative isolate h-full min-h-[420px] w-full overflow-hidden bg-black text-slate-100 font-sans select-none">
       {/* 3D Dark Globe Canvas (Fixed Size) */}
       <GlobeMap
         feeds={feeds}
