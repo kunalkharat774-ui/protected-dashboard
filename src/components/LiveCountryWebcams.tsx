@@ -15,16 +15,20 @@ import {
   Minimize2, 
   X, 
   ChevronLeft, 
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 
 /* ==========================================================================
-   1. TYPES & DATA (18 LIVE COUNTRY FEEDS)
+   1. TYPES & VERIFIED PUBLIC FEEDS
    ========================================================================== */
 
 export interface LiveFeed {
   id: string;
-  youtubeId: string;
+  youtubeId: string | null;
+  embed: { scriptUrl: string; cameraId: string } | null;
+  sourceUrl: string;
+  sourceName: string;
   title: string;
   location: string;
   country: string;
@@ -35,7 +39,6 @@ export interface LiveFeed {
   timezone: string;
   category: 'urban' | 'marine' | 'darksky' | 'polar' | 'alpine';
   description: string;
-  signalQuality: number;
 }
 
 export type VisualFilter = 'normal' | 'nightvision' | 'thermal' | 'monochrome';
@@ -46,356 +49,28 @@ export interface GlobeSettings {
   showAtmosphere: boolean;
 }
 
-export const DEFAULT_FEEDS: LiveFeed[] = [
+export const ALL_LIVE_FEEDS: LiveFeed[] = [
   {
-    id: 'cam-01',
-    youtubeId: 'DoUOrTJbIu4',
-    title: 'Shibuya Crossing & Tokyo Metropolis',
-    location: 'Tokyo',
-    country: 'Japan',
-    region: 'East Asia · Sector 07',
-    lat: 35.6595,
-    lng: 139.7005,
-    elevation: '42m',
-    timezone: 'Asia/Tokyo',
-    category: 'urban',
-    description: 'Pedestrian crossing & neon commercial district surveillance.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-02',
-    youtubeId: 'J7ZrIDvqlic',
-    title: 'Sydney Harbour & Opera House Vista',
-    location: 'Sydney',
-    country: 'Australia',
-    region: 'Oceania · Sector 02',
-    lat: -33.8568,
-    lng: 151.2153,
-    elevation: '15m',
-    timezone: 'Australia/Sydney',
-    category: 'marine',
-    description: 'Deep harbour maritime navigation channel.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-03',
-    youtubeId: 'xdR31xv7il0',
-    title: 'Bondi Beach Coastal Surf Watch',
-    location: 'Bondi, New South Wales',
-    country: 'Australia',
-    region: 'Oceania · Sector 02',
-    lat: -33.8915,
-    lng: 151.2767,
-    elevation: '8m',
-    timezone: 'Australia/Sydney',
-    category: 'marine',
-    description: 'South Pacific shoreline break & littoral observation.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-04',
-    youtubeId: 'oibsohQ14cY',
-    title: 'Melbourne CBD & Yarra River Corridor',
-    location: 'Melbourne, Victoria',
-    country: 'Australia',
-    region: 'Oceania · Sector 02',
-    lat: -37.8136,
-    lng: 144.9631,
-    elevation: '31m',
-    timezone: 'Australia/Melbourne',
-    category: 'urban',
-    description: 'Metropolitan arterial transit line and skyline.',
-    signalQuality: 4
-  },
-  {
-    id: 'cam-05',
-    youtubeId: 'gEbrHdFRgpQ',
-    title: 'Brisbane River & Story Bridge Array',
-    location: 'Brisbane, Queensland',
-    country: 'Australia',
-    region: 'Oceania · Sector 02',
-    lat: -27.4698,
-    lng: 153.0251,
-    elevation: '28m',
-    timezone: 'Australia/Brisbane',
-    category: 'urban',
-    description: 'Subtropical river traffic infrastructure monitoring.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-06',
-    youtubeId: 'ydYDqZQpim8',
-    title: 'Perth Western Coast & Indian Ocean',
-    location: 'Perth, Western Australia',
-    country: 'Australia',
-    region: 'Oceania · Sector 02',
-    lat: -31.9505,
-    lng: 115.8605,
-    elevation: '18m',
-    timezone: 'Australia/Perth',
-    category: 'marine',
-    description: 'Indian Ocean maritime approach and Swan River littoral zone.',
-    signalQuality: 4
-  },
-  {
-    id: 'cam-07',
-    youtubeId: 'EO_1LWqsCNE',
-    title: 'Svalbard Arctic Deep Polar Station',
-    location: 'Longyearbyen, Svalbard',
-    country: 'Norway',
-    region: 'High Arctic · Sector 09',
-    lat: 78.2232,
-    lng: 15.6267,
-    elevation: '130m',
-    timezone: 'Arctic/Longyearbyen',
-    category: 'polar',
-    description: 'High-latitude polar night observation base and aurora detector.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-08',
-    youtubeId: 'wVNt3l657X0',
-    title: 'Reykjavik Volcano & Nocturnal Sky',
-    location: 'Reykjanes Peninsula',
-    country: 'Iceland',
-    region: 'North Atlantic · Sector 04',
-    lat: 63.8950,
-    lng: -22.3550,
-    elevation: '92m',
-    timezone: 'Atlantic/Reykjavik',
-    category: 'darksky',
-    description: 'Geothermal rift zone and volcanic nocturnal horizon.',
-    signalQuality: 4
-  },
-  {
-    id: 'cam-09',
-    youtubeId: '1EiC9bvVGnk',
-    title: 'Atacama Desert High Plateau Observatory',
-    location: 'Antofagasta Region',
-    country: 'Chile',
-    region: 'South America · Sector 05',
-    lat: -24.6272,
-    lng: -70.4042,
-    elevation: '2,635m',
-    timezone: 'America/Santiago',
-    category: 'darksky',
-    description: 'Ultra-arid high-altitude astronomical plateau array.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-10',
-    youtubeId: '0Kaji9GHl68',
-    title: 'Tromsø Fjord Northern Lights Watch',
-    location: 'Tromsø',
-    country: 'Norway',
-    region: 'Scandinavian North · Sector 03',
-    lat: 69.6492,
-    lng: 18.9553,
-    elevation: '45m',
-    timezone: 'Europe/Oslo',
-    category: 'polar',
-    description: 'Fjord maritime gateway with geomagnetic auroral oval coverage.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-11',
-    youtubeId: '77akujLn4k8',
-    title: 'Mauna Kea Stellar Horizon Array',
-    location: 'Mauna Kea, Hawaii',
+    id: 'yellowstone-old-faithful',
+    youtubeId: null,
+    embed: {
+      scriptUrl: 'https://pixelcaster.com/live/yellowstone/https/pixelcaster.js',
+      cameraId: 'faithful'
+    },
+    sourceUrl: 'https://www.nps.gov/yell/learn/photosmultimedia/webcams.htm',
+    sourceName: 'U.S. National Park Service',
+    title: 'Old Faithful & Upper Geyser Basin',
+    location: 'Yellowstone National Park, Wyoming',
     country: 'United States',
-    region: 'Central Pacific · Sector 01',
-    lat: 19.8206,
-    lng: -155.4681,
-    elevation: '4,205m',
-    timezone: 'Pacific/Honolulu',
-    category: 'darksky',
-    description: 'Summit above cloud deck monitoring celestial hemisphere dynamics.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-12',
-    youtubeId: 'P5WnSGXJpkM',
-    title: 'Namib Desert Dark Sky Wilderness',
-    location: 'Sossusvlei, Namib-Naukluft',
-    country: 'Namibia',
-    region: 'Southern Africa · Sector 08',
-    lat: -24.7570,
-    lng: 15.2820,
-    elevation: '580m',
-    timezone: 'Africa/Windhoek',
-    category: 'darksky',
-    description: 'Hyper-arid sand sea dark sky reserve with zero light pollution.',
-    signalQuality: 4
-  },
-  {
-    id: 'cam-13',
-    youtubeId: 'oI8R4_UG3Fs',
-    title: 'Matterhorn Alpine Glacier Panorama',
-    location: 'Zermatt, Valais',
-    country: 'Switzerland',
-    region: 'Central Alps · Sector 06',
-    lat: 45.9765,
-    lng: 7.7491,
-    elevation: '3,883m',
-    timezone: 'Europe/Zurich',
+    region: 'Yellowstone National Park',
+    lat: 44.4605,
+    lng: -110.8281,
+    elevation: '2,240m',
+    timezone: 'America/Denver',
     category: 'alpine',
-    description: 'Perennial alpine glacier and peak weather telemetry.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-14',
-    youtubeId: 'VsuSbXPN93o',
-    title: 'Times Square Central Grid',
-    location: 'Manhattan, New York',
-    country: 'United States',
-    region: 'North America · Sector 01',
-    lat: 40.7580,
-    lng: -73.9855,
-    elevation: '16m',
-    timezone: 'America/New_York',
-    category: 'urban',
-    description: 'High-density commercial canyon transit flow.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-15',
-    youtubeId: 'sK8I9H2IUHc',
-    title: 'Tower Bridge & River Thames Channel',
-    location: 'London',
-    country: 'United Kingdom',
-    region: 'Western Europe · Sector 06',
-    lat: 51.5055,
-    lng: -0.0754,
-    elevation: '12m',
-    timezone: 'Europe/London',
-    category: 'marine',
-    description: 'Historic bascule bridge navigational channel.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-16',
-    youtubeId: '7E_HX7HUUEU',
-    title: 'Dubai Marina & Persian Gulf Coast',
-    location: 'Dubai',
-    country: 'United Arab Emirates',
-    region: 'Middle East · Sector 10',
-    lat: 25.0772,
-    lng: 55.1384,
-    elevation: '11m',
-    timezone: 'Asia/Dubai',
-    category: 'urban',
-    description: 'Artificial canal city, high-rise towers and coastal waters.',
-    signalQuality: 5
-  },
-  {
-    id: 'cam-17',
-    youtubeId: 'zmv6NPLg91U',
-    title: 'Grand Canal & Rialto Bridge Waterway',
-    location: 'Venice',
-    country: 'Italy',
-    region: 'Mediterranean · Sector 06',
-    lat: 45.4371,
-    lng: 12.3326,
-    elevation: '2m',
-    timezone: 'Europe/Rome',
-    category: 'marine',
-    description: 'Venetian lagoon principal waterway and historic facade.',
-    signalQuality: 4
-  },
-  {
-    id: 'cam-18',
-    youtubeId: 'b3FEr9SfWpU',
-    title: 'Teheran-ro Boulevard & Gangnam Tech Hub',
-    location: 'Seoul',
-    country: 'South Korea',
-    region: 'East Asia · Sector 07',
-    lat: 37.4979,
-    lng: 127.0276,
-    elevation: '38m',
-    timezone: 'Asia/Seoul',
-    category: 'urban',
-    description: 'Primary technological corridor and transit arterial stream.',
-    signalQuality: 5
+    description: 'Official NPS page featuring the Old Faithful and Upper Geyser Basin livestream.'
   }
 ];
-
-type CommunityFeedSource = [
-  youtubeId: string,
-  title: string,
-  location: string,
-  country: string,
-  lat: number,
-  lng: number,
-  timezone: string,
-  category: LiveFeed['category'],
-  region: string
-];
-
-const COMMUNITY_FEED_SOURCES: CommunityFeedSource[] = [
-  ['E6245ngeZj4', 'JM-KALIX STORE Cam 2 · Davao City', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['yhYNuFAzmLE', 'JM and KALIX STORE Cam 3 · Davao City', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['OdY-pbgl1Mk', "Jimmy Woo's Chaweng · Koh Samui", 'Chaweng, Koh Samui', 'Thailand', 9.532, 100.061, 'Asia/Bangkok', 'urban', 'South-east Asia'],
-  ['R8MRTG0pYdc', "Woody's Veilige Haven · Cat Cam", 'Texel', 'Netherlands', 53.09, 4.76, 'Europe/Amsterdam', 'urban', 'Western Europe'],
-  ['3o9aoRyrvAk', 'Umineko Shop · Indoor Camera', 'Japan · location unverified', 'Japan', 36.2048, 138.2529, 'Asia/Tokyo', 'urban', 'East Asia · approximate country location'],
-  ['QIIVxUJzJQw', 'Bryant Park Webcam', 'Bryant Park, New York', 'United States', 40.7536, -73.9832, 'America/New_York', 'urban', 'North America'],
-  ['1T-V4jJIW1E', 'Rosemary Street Cam 4 · Davao City', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['fjr6-nPKfW0', 'Kanaya Hotel Bakery · Tobu-Nikko Station', 'Nikko, Tochigi', 'Japan', 36.7485, 139.6, 'Asia/Tokyo', 'urban', 'East Asia'],
-  ['AZWgPsla0C0', 'Boy Sayong Cam 3 · Agdao Public Market', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['8lysODeBE_4', 'Mount Washington Cog Railway Webcam', 'Mount Washington, New Hampshire', 'United States', 44.2706, -71.35, 'America/New_York', 'alpine', 'North America'],
-  ['BvaNtRp_2pM', 'Costa Teguise Beachbar Webcam', 'Costa Teguise, Lanzarote', 'Spain', 28.996, -13.49, 'Atlantic/Canary', 'marine', 'Canary Islands'],
-  ['8qv8k8yE95s', 'Kensington Cam 3 · Philadelphia', 'Kensington, Philadelphia', 'United States', 39.99, -75.12, 'America/New_York', 'urban', 'North America'],
-  ['DwKCna1mumk', 'Hush Bar · Chaweng · Koh Samui', 'Chaweng, Koh Samui', 'Thailand', 9.532, 100.061, 'Asia/Bangkok', 'urban', 'South-east Asia'],
-  ['6kX0K9u3NTQ', "Bankerohan · Lyn's Food Haus", 'Bankerohan, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['l-XLDB2Jh4Y', 'Bankerohan Eatery · Davao City', 'Bankerohan, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['HozfwlxzwnU', "Maria's Cam 10 · Rosemary Street", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['lsLkrwlimbE', "Maria's Cam 9 · Rosemary Street", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['_nvG0c9keWI', 'Sainamyen Road · Patong', 'Patong, Phuket', 'Thailand', 7.8965, 98.296, 'Asia/Bangkok', 'urban', 'South-east Asia'],
-  ['1rWzQP_ZYxc', 'Vulcanizing Tyre Repair Shop · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['gM6vYZrTubo', "Maria's Store Cam 6-A · Davao City", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['irXHQTPI_tQ', "Lyn's Samgyup Restaurant · Davao", 'Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['MncLrf2LsT8', "Roxas Avenue · outside Lyn's Restaurant", 'Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['ifJ3OlBGF7E', "Outside Lodi's Eatery · Davao", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['D0zoMg6-XsQ', "Outside Dodong Barber Shop · Davao", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['_9K8wSVX0I8', "Bankerohan Quad View · Lyn's Food Haus", 'Bankerohan, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['d17IkvT4EkQ', 'Inside Cynthia Store · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['Sgt05K7f9TA', "Lyn's Samgyup Staff Cam · Davao", 'Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['FWvIPfxK5Jo', 'Leon Garcia Street Traffic · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['7-oD0lZA7JQ', "Bankerohan · Lyn's Food Haus Outdoor Cam", 'Bankerohan, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['IONwBYLZ15E', 'Inside Jazzle House', 'United Kingdom · location unverified', 'United Kingdom', 54.0, -2.0, 'Europe/London', 'urban', 'United Kingdom · approximate country location'],
-  ['fvOgXk09PFY', 'Japan Street · Agdao · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['z8TKwI9Ntho', 'Tyre Repair Shop & Sari-Sari Store · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['xa_7z1bHsPM', 'House View · Agdao · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['eYAB0HX8NF8', 'F. Bangoy Street · Lapu-Lapu View', 'Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['zgbPv6BkjgY', 'Bankerohan Market Area PTZ · Davao', 'Bankerohan, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['QQBVEf6B2r0', 'Jet Wash Area · Agdao · Davao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['oUTKwSBvBhI', 'Soliman Street · Motorbike Jet Wash', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['2iENQ0dDmqI', 'Barangay Hall Basketball Court · Agdao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['yznpQlk0exE', 'F. Bangoy Street & Soliman Crossing', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['GCoBhf_Hd-o', "Maria's Cam 10a · Rosemary Street", 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['8ALC939509U', 'Soliman Street Cam 4 · Agdao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['Q7JY7sgxI7o', 'Outside House Cam 1 · Agdao', 'Agdao, Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines'],
-  ['LlMhf0Vdf_Q', 'House View · Davao City', 'Davao City', 'Philippines', 7.074, 125.612, 'Asia/Manila', 'urban', 'Davao · Philippines']
-];
-
-const COMMUNITY_FEEDS: LiveFeed[] = COMMUNITY_FEED_SOURCES.map(
-  ([youtubeId, title, location, country, lat, lng, timezone, category, region], index) => ({
-    id: `community-${index + 1}`,
-    youtubeId,
-    title,
-    location,
-    country,
-    region,
-    lat,
-    lng,
-    elevation: '—',
-    timezone,
-    category,
-    description: 'User-provided YouTube stream. Availability and publisher-reported location may change.',
-    signalQuality: 4
-  })
-);
-
-export const ALL_LIVE_FEEDS: LiveFeed[] = [...DEFAULT_FEEDS, ...COMMUNITY_FEEDS];
 
 /* ==========================================================================
    2. GEOMETRY & CANVASES (PITCH BLACK OCEAN + COLORFUL NATIONS)
@@ -543,8 +218,32 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [filter, setFilter] = useState<VisualFilter>('normal');
+  const [embedError, setEmbedError] = useState(false);
   const [utcTime, setUtcTime] = useState('');
   const [localTime, setLocalTime] = useState('');
+  const embedContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = embedContainerRef.current;
+    if (!container || !feed?.embed) return;
+
+    setEmbedError(false);
+    const camera = document.createElement('div');
+    camera.id = 'pixelcaster';
+    camera.className = 'flowplayer no-volume no-mute functional';
+    camera.dataset.camera = feed.embed.cameraId;
+
+    const script = document.createElement('script');
+    script.src = feed.embed.scriptUrl;
+    script.async = true;
+    script.onerror = () => setEmbedError(true);
+
+    container.replaceChildren(camera, script);
+    return () => {
+      script.onerror = null;
+      container.replaceChildren();
+    };
+  }, [feed]);
 
   useEffect(() => {
     const updateClocks = () => {
@@ -635,12 +334,12 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
         <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-400 z-30 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-400 z-30 pointer-events-none" />
 
-        {/* Top Bar (Covers YouTube title bar) */}
+        {/* Publisher and camera location */}
         <div className="relative z-30 flex items-center justify-between px-3 py-2 bg-gradient-to-b from-[#020617] via-[#051125] to-[#040d1e] border-b border-cyan-500/40 text-xs font-mono">
           <div className="flex items-center gap-2.5">
-            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-950/80 border border-red-500/60 text-red-400 font-semibold tracking-wider text-[10px] animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
-              LIVE · REC
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/60 text-cyan-300 font-semibold tracking-wider text-[10px]">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              OFFICIAL SOURCE
             </span>
             <span className="text-cyan-300 font-bold uppercase tracking-wider text-[11px] truncate max-w-[150px] sm:max-w-[220px]">
               {feed.location}
@@ -651,22 +350,24 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center border border-cyan-500/30 rounded bg-slate-900/60">
-              <button
-                onClick={handlePrev}
-                title="Previous Live Feed"
-                className="p-1 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40 transition-colors"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleNext}
-                title="Next Live Feed"
-                className="p-1 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40 transition-colors"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {allFeeds.length > 1 && (
+              <div className="flex items-center border border-cyan-500/30 rounded bg-slate-900/60">
+                <button
+                  onClick={handlePrev}
+                  title="Previous live feed"
+                  className="p-1 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40 transition-colors"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  title="Next live feed"
+                  className="p-1 text-slate-300 hover:text-cyan-300 hover:bg-cyan-950/40 transition-colors"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Dedicated Fullscreen Toggle */}
             <button
@@ -697,21 +398,41 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
           </div>
         </div>
 
-        {/* Video Chassis: 132% scale and -16% crop to fully mask YouTube elements */}
+        {/* Load the publisher-approved embed or link directly to the publisher. */}
         <div className="relative flex-1 w-full bg-black overflow-hidden group min-h-[240px] sm:min-h-[290px]">
-          <div
-            className="absolute inset-0 w-full h-full pointer-events-auto"
-            style={getFilterStyle()}
-          >
-            <iframe
-              key={feed.id}
-              src={`https://www.youtube-nocookie.com/embed/${feed.youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&modestbranding=1&playsinline=1&fs=0&loop=1&playlist=${feed.youtubeId}`}
-              title={feed.title}
-              className="absolute top-[-16%] left-[-16%] w-[132%] h-[132%] border-0 pointer-events-none select-none"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen={false}
-            />
-          </div>
+          {feed.youtubeId ? (
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-auto"
+              style={getFilterStyle()}
+            >
+              <iframe
+                key={feed.id}
+                src={`https://www.youtube-nocookie.com/embed/${feed.youtubeId}?autoplay=1&mute=1&controls=1&rel=0&playsinline=1`}
+                title={feed.title}
+                className="absolute inset-0 w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : feed.embed && !embedError ? (
+            <div ref={embedContainerRef} className="absolute inset-0 h-full w-full" />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              <p className="text-sm text-slate-200">
+                {embedError ? 'The official camera player could not be loaded.' : feed.description}
+              </p>
+              <a
+                href={feed.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300"
+              >
+                Open official live webcam
+                <ExternalLink className="h-4 w-4" />
+              </a>
+              <span className="text-xs text-slate-400">Hosted by {feed.sourceName}</span>
+            </div>
+          )}
 
           <div className="absolute bottom-3 left-3 z-20 pointer-events-none text-[10px] font-mono text-cyan-300/90 bg-black/70 px-2 py-1 rounded border border-cyan-500/30 backdrop-blur-xs flex items-center gap-2">
             <span>{utcTime}</span>
@@ -722,25 +443,39 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
           </div>
         </div>
 
-        {/* Bottom Bar (Covers YouTube bottom controls) */}
+        {/* Publisher source and camera coordinates */}
         <div className="relative z-30 flex items-center justify-between px-3 py-2 bg-gradient-to-t from-[#020617] via-[#051125] to-[#040d1e] border-t border-cyan-500/40 text-xs font-mono">
           <div className="flex items-center gap-1">
-            <span className="text-[10px] text-slate-400 mr-1 hidden sm:inline">OPTICS:</span>
-            {(['normal', 'nightvision', 'thermal', 'monochrome'] as VisualFilter[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`
-                  px-2 py-0.5 text-[10px] uppercase font-mono rounded transition-colors cursor-pointer
-                  ${filter === f
-                    ? 'bg-cyan-500 text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.6)]'
-                    : 'text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-700/80 border border-cyan-500/20'
-                  }
-                `}
+            {feed.youtubeId ? (
+              <>
+                <span className="text-[10px] text-slate-400 mr-1 hidden sm:inline">OPTICS:</span>
+                {(['normal', 'nightvision', 'thermal', 'monochrome'] as VisualFilter[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`
+                      px-2 py-0.5 text-[10px] uppercase font-mono rounded transition-colors cursor-pointer
+                      ${filter === f
+                        ? 'bg-cyan-500 text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.6)]'
+                        : 'text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-700/80 border border-cyan-500/20'
+                      }
+                    `}
+                  >
+                    {f === 'nightvision' ? 'NIGHT' : f === 'monochrome' ? 'B&W' : f}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <a
+                href={feed.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] text-cyan-300 hover:text-cyan-100"
               >
-                {f === 'nightvision' ? 'NIGHT' : f === 'monochrome' ? 'B&W' : f}
-              </button>
-            ))}
+                SOURCE: {feed.sourceName}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -749,19 +484,6 @@ const LiveFeedPlayer: React.FC<LiveFeedPlayerProps> = ({
               {feed.lng > 0 ? `${feed.lng.toFixed(2)}°E` : `${Math.abs(feed.lng).toFixed(2)}°W`}
             </div>
 
-            <div className="flex items-center gap-0.5 px-1 py-1 rounded bg-slate-900/80 border border-slate-700" title={`Signal: ${feed.signalQuality}/5`}>
-              {[1, 2, 3, 4, 5].map((bar) => (
-                <div
-                  key={bar}
-                  className={`w-1 rounded-xs ${
-                    bar <= feed.signalQuality
-                      ? 'bg-emerald-400 shadow-[0_0_4px_#34d399]'
-                      : 'bg-slate-700'
-                  }`}
-                  style={{ height: `${bar * 2.5 + 4}px` }}
-                />
-              ))}
-            </div>
           </div>
         </div>
 
