@@ -92,7 +92,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
       <div
         className="absolute inset-4 rounded-full blur-3xl pointer-events-none transition-opacity duration-700"
         style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(225, 29, 72, 0.08) 42%, transparent 72%)',
           opacity: 0.8,
         }}
       />
@@ -101,7 +101,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
         viewBox="0 0 400 400"
         className="w-full h-full overflow-visible transition-all duration-300"
         style={{
-          filter: 'drop-shadow(0 12px 24px rgba(37, 99, 235, 0.14))',
+          filter: 'drop-shadow(0 0 24px rgba(6, 182, 212, 0.2))',
         }}
       >
         <defs>
@@ -114,8 +114,8 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           </filter>
 
           <linearGradient id="cyber-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#2563eb" />
-            <stop offset="50%" stopColor="#0284c7" />
+            <stop offset="0%" stopColor="#e11d48" />
+            <stop offset="50%" stopColor="#06b6d4" />
             <stop offset="100%" stopColor="#059669" />
           </linearGradient>
         </defs>
@@ -126,7 +126,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           cy={center}
           r="172"
           fill="none"
-          stroke="#cbd5e1"
+          stroke="#164e63"
           strokeWidth="1.2"
           opacity="0.8"
         />
@@ -163,7 +163,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke={isMajor ? '#2563eb' : '#94a3b8'}
+                stroke={isMajor ? '#22d3ee' : '#164e63'}
                 strokeWidth={isMajor ? 1.8 : 0.8}
                 opacity={isMajor ? 0.9 : 0.5}
               />
@@ -176,7 +176,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <path
             d={spiralPath}
             fill="none"
-            stroke="#2563eb"
+            stroke="#22d3ee"
             strokeWidth="2.2"
             strokeDasharray="4 3"
             opacity="0.85"
@@ -195,7 +195,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 y1={l.y1}
                 x2={l.x2}
                 y2={l.y2}
-                stroke={isEnergized ? '#1d4ed8' : '#93c5fd'}
+                stroke={isEnergized ? '#22d3ee' : '#164e63'}
                 strokeWidth={isEnergized ? 1.5 : 0.85}
                 opacity={isEnergized ? 0.95 : 0.4}
                 className="transition-opacity duration-200"
@@ -213,7 +213,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <polygon
             points={`${center},${center - d2} ${center + d2 * Math.cos(Math.PI / 6)},${center + d2 * Math.sin(Math.PI / 6)} ${center - d2 * Math.cos(Math.PI / 6)},${center + d2 * Math.sin(Math.PI / 6)}`}
             fill="none"
-            stroke="#1e40af"
+            stroke="#f43f5e"
             strokeWidth="2.2"
             opacity="0.95"
           />
@@ -221,7 +221,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <polygon
             points={`${center},${center + d2} ${center + d2 * Math.cos(-Math.PI / 6)},${center + d2 * Math.sin(-Math.PI / 6)} ${center - d2 * Math.cos(-Math.PI / 6)},${center + d2 * Math.sin(-Math.PI / 6)}`}
             fill="none"
-            stroke="#0284c7"
+            stroke="#22d3ee"
             strokeWidth="2.2"
             opacity="0.95"
           />
@@ -237,8 +237,8 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 cx={s.x}
                 cy={s.y}
                 r={sphereRadius}
-                fill={isActivated ? '#eff6ff' : '#ffffff'}
-                stroke={isActivated ? '#1d4ed8' : '#94a3b8'}
+                fill={isActivated ? '#083344' : '#07111d'}
+                stroke={isActivated ? '#22d3ee' : '#164e63'}
                 strokeWidth={isActivated ? 2 : 1.2}
                 opacity={1}
               />
@@ -247,7 +247,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 cx={s.x}
                 cy={s.y}
                 r={s.id === 0 ? 5.5 : 3}
-                fill={isActivated ? '#2563eb' : '#64748b'}
+                fill={isActivated ? '#22d3ee' : '#334155'}
                 opacity={1}
               />
               {/* Center core pulse ring */}
@@ -257,7 +257,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                   cy={s.y}
                   r={sphereRadius + 10}
                   fill="none"
-                  stroke="#2563eb"
+                  stroke="#f43f5e"
                   strokeWidth="1.2"
                   strokeDasharray="4 3"
                   className="animate-spin-medium"
@@ -273,7 +273,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <g className="animate-spin-fast" style={{ transformOrigin: '200px 200px' }}>
             <polygon
               points={`${center},${center - 32} ${center + 9},${center - 9} ${center + 32},${center} ${center + 9},${center + 9} ${center},${center + 32} ${center - 9},${center + 9} ${center - 32},${center} ${center - 9},${center - 9}`}
-              fill="#2563eb"
+              fill="#f43f5e"
               opacity="0.9"
               filter="url(#glow-proper)"
             />
@@ -340,67 +340,80 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
 
   return (
     <div
-      className="fixed inset-0 w-full h-[100dvh] flex flex-col items-center justify-center overflow-hidden select-none bg-[#f8fafc] text-slate-900"
+      className="fixed inset-0 w-full h-[100dvh] flex flex-col items-center justify-center overflow-hidden select-none bg-[#03060b] text-slate-100"
     >
-      {/* Crisp Subtle Micro-Grid Canvas Overlay */}
-      <div className="absolute inset-0 bg-cyber-grid-light opacity-70 pointer-events-none" />
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+          maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 78%)',
+        }}
+      />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_45%,rgba(8,47,73,0.32),transparent_58%)]" />
 
       {/* Atmospheric Soft Luminous Backlight Glow */}
       <div
-        className="absolute w-[620px] h-[620px] rounded-full blur-[140px] pointer-events-none opacity-45"
+        className="absolute w-[620px] h-[620px] rounded-full blur-[140px] pointer-events-none opacity-70"
         style={{
-          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(14, 165, 233, 0.1) 45%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(8, 47, 73, 0.12) 45%, transparent 70%)',
         }}
       />
       <div
-        className="absolute w-[360px] h-[360px] rounded-full blur-[90px] pointer-events-none opacity-35"
+        className="absolute w-[360px] h-[360px] rounded-full blur-[90px] pointer-events-none opacity-45"
         style={{
-          background: 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, rgba(225, 29, 72, 0.12) 0%, transparent 65%)',
         }}
       />
 
       {/* TOP-LEFT CORNER: SYSTEM: ONLINE */}
-      <div className="fixed top-[max(1.5rem,env(safe-area-inset-top))] left-6 sm:top-8 sm:left-8 z-30 flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-white/90 border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+      <div className="fixed top-[max(1.5rem,env(safe-area-inset-top))] left-4 sm:top-8 sm:left-8 z-30 flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
         </span>
-        <span className="font-mono-tabular text-xs tracking-widest uppercase font-bold text-emerald-700">
+        <span className="font-mono-tabular text-xs tracking-widest uppercase font-bold text-emerald-300">
           SYSTEM: ONLINE
         </span>
       </div>
 
       {/* CENTERPIECE: Second Animated Symbol (Metatron's Sacred Geometry Matrix) */}
       <div className="relative z-10 w-[min(340px,calc(100vw-2rem),42dvh)] sm:w-[min(390px,calc(100vw-4rem),42dvh)] md:w-[min(420px,calc(100vw-4rem),42dvh)] max-w-full aspect-square flex items-center justify-center">
+        <div className="absolute inset-[8%] rounded-full border border-cyan-400/10 shadow-[0_0_70px_rgba(6,182,212,0.08),inset_0_0_50px_rgba(6,182,212,0.04)]" />
         <MetatronSymbol percent={percent} />
       </div>
 
       {/* BRAND & DASHBOARD TITLES: ICON REMOVED FROM SECUREWATCH LEFT SIDE */}
-      <div className="relative z-10 mt-5 sm:mt-6 flex flex-col items-center text-center px-4 max-w-lg">
+      <div className="relative z-10 mt-3 sm:mt-4 flex flex-col items-center text-center px-4 max-w-lg">
+        <div className="mb-2 flex items-center gap-2 font-mono-tabular text-[9px] sm:text-[10px] tracking-[0.32em] uppercase text-cyan-400/80">
+          <span className="h-px w-6 bg-gradient-to-r from-transparent to-cyan-400/80" />
+          CYSEC // SECURITY OPERATIONS
+          <span className="h-px w-6 bg-gradient-to-l from-transparent to-cyan-400/80" />
+        </div>
         {/* Brand Name: SECUREWATCH (Clean & Centered without any icon on the left) */}
-        <h1 className="text-2xl min-[380px]:text-3xl sm:text-4xl md:text-5xl font-serif-symbolic font-black tracking-[0.14em] min-[380px]:tracking-[0.2em] sm:tracking-[0.28em] uppercase text-slate-900 mb-1.5 drop-shadow-sm">
+        <h1 className="text-2xl min-[380px]:text-3xl sm:text-4xl md:text-5xl font-serif-symbolic font-black tracking-[0.14em] min-[380px]:tracking-[0.2em] sm:tracking-[0.28em] uppercase text-white mb-1.5 drop-shadow-[0_0_22px_rgba(34,211,238,0.24)]">
           SECUREWATCH
         </h1>
 
         {/* Subtitle: WEB APPLICATION & API SECURITY DASHBOARD */}
-        <h2 className="max-w-full text-[10px] min-[380px]:text-xs sm:text-sm font-mono-tabular font-semibold tracking-[0.12em] min-[380px]:tracking-[0.16em] sm:tracking-[0.2em] uppercase text-slate-500">
+        <h2 className="max-w-full text-[10px] min-[380px]:text-xs sm:text-sm font-mono-tabular font-semibold tracking-[0.12em] min-[380px]:tracking-[0.16em] sm:tracking-[0.2em] uppercase text-slate-400">
           Web Application & API Security Dashboard
         </h2>
 
         {/* Clean High-Precision Lightweight Progress Bar */}
-        <div className="mt-4 flex flex-col items-center gap-1.5 w-full max-w-xs sm:max-w-sm">
-          <div className="w-full h-1.5 bg-slate-200/90 rounded-full overflow-hidden border border-slate-300/60 shadow-inner">
+        <div className="mt-4 flex flex-col items-center gap-2 w-full max-w-xs sm:max-w-sm">
+          <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-cyan-900/80 shadow-inner">
             <div
-              className="h-full bg-gradient-to-r from-blue-600 via-sky-500 to-emerald-500 shadow-sm transition-all duration-300"
+              className="h-full bg-gradient-to-r from-rose-500 via-cyan-400 to-emerald-300 shadow-[0_0_12px_rgba(34,211,238,0.7)] transition-all duration-300"
               style={{ width: `${percent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between w-full text-[11px] font-mono-tabular text-slate-600">
-            <span className="tracking-wider uppercase font-medium text-slate-500">
+          <div className="flex items-center justify-between w-full text-[10px] sm:text-[11px] font-mono-tabular text-slate-500">
+            <span className="tracking-wider uppercase font-medium text-slate-400">
               INITIALIZING SECURITY POLICIES
             </span>
-            <span className="font-bold tabular-nums text-blue-600">
+            <span className="font-bold tabular-nums text-cyan-300">
               {Math.floor(percent)}%
             </span>
           </div>
@@ -408,27 +421,27 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
       </div>
 
       {/* LEFT-SIDE FOOTER: LIVE FREQUENCY EQUALIZER */}
-      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-3 min-[380px]:left-4 sm:bottom-8 sm:left-8 z-30 flex items-center gap-2 sm:gap-3 px-2 min-[380px]:px-2.5 sm:px-3.5 py-2 rounded-lg bg-white/90 border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-3 min-[380px]:left-4 sm:bottom-8 sm:left-8 z-30 flex items-center gap-2 sm:gap-3 px-2 min-[380px]:px-2.5 sm:px-3.5 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
         {/* Animated frequency equalizer bars */}
         <div className="flex items-end gap-1 h-5 w-10 min-[380px]:w-12 px-0.5" aria-hidden="true">
-          <span className="h-full w-1 bg-blue-600 rounded-t animate-frequency-wave" style={{ animationDelay: '0ms' }} />
-          <span className="h-full w-1 bg-sky-500 rounded-t animate-frequency-wave" style={{ animationDelay: '120ms' }} />
-          <span className="h-full w-1 bg-indigo-600 rounded-t animate-frequency-wave" style={{ animationDelay: '240ms' }} />
-          <span className="h-full w-1 bg-teal-500 rounded-t animate-frequency-wave" style={{ animationDelay: '360ms' }} />
-          <span className="h-full w-1 bg-blue-500 rounded-t animate-frequency-wave" style={{ animationDelay: '480ms' }} />
-          <span className="h-full w-1 bg-sky-600 rounded-t animate-frequency-wave" style={{ animationDelay: '600ms' }} />
+          <span className="h-full w-1 bg-rose-500 rounded-t animate-frequency-wave" style={{ animationDelay: '0ms' }} />
+          <span className="h-full w-1 bg-cyan-400 rounded-t animate-frequency-wave" style={{ animationDelay: '120ms' }} />
+          <span className="h-full w-1 bg-sky-400 rounded-t animate-frequency-wave" style={{ animationDelay: '240ms' }} />
+          <span className="h-full w-1 bg-teal-400 rounded-t animate-frequency-wave" style={{ animationDelay: '360ms' }} />
+          <span className="h-full w-1 bg-cyan-300 rounded-t animate-frequency-wave" style={{ animationDelay: '480ms' }} />
+          <span className="h-full w-1 bg-sky-500 rounded-t animate-frequency-wave" style={{ animationDelay: '600ms' }} />
         </div>
 
-        <span className="text-[10px] min-[380px]:text-xs font-mono-tabular font-bold text-slate-800 tabular-nums">
+        <span className="text-[10px] min-[380px]:text-xs font-mono-tabular font-bold text-cyan-200 tabular-nums">
           {freq.toFixed(1)} Hz
         </span>
       </div>
 
       {/* RIGHT-SIDE CORNER FOOTER: DEVELOPED BY KUNAL KHARAT */}
-      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 min-[380px]:right-4 sm:bottom-8 sm:right-8 z-30 flex items-center px-2 min-[380px]:px-2.5 sm:px-4 py-2 rounded-lg bg-white/90 border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] backdrop-blur-xl">
-        <span className="font-mono-tabular text-[9px] min-[380px]:text-[10px] sm:text-xs tracking-wider uppercase font-semibold text-slate-700">
+      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 min-[380px]:right-4 sm:bottom-8 sm:right-8 z-30 flex items-center px-2 min-[380px]:px-2.5 sm:px-4 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
+        <span className="font-mono-tabular text-[9px] min-[380px]:text-[10px] sm:text-xs tracking-wider uppercase font-semibold text-slate-300">
           <span className="hidden sm:inline">DEVELOPED BY{' '}</span>
-          <span className="text-blue-600 font-bold">
+          <span className="text-cyan-300 font-bold">
             KUNAL KHARAT
           </span>
         </span>

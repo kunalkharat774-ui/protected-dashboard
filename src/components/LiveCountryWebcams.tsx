@@ -911,7 +911,7 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2500);
-    camera.position.set(0, 20, 275);
+    camera.position.set(0, 0, 300);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
@@ -1060,17 +1060,18 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     animFrameIdRef.current = requestAnimationFrame(animate);
 
     const handleResize = () => {
-      if (!container || !renderer || !camera) return;
       const w = container.clientWidth;
       const h = container.clientHeight;
+      if (w === 0 || h === 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
@@ -1166,7 +1167,7 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     const localTarget = latLngToVector3(feed.lat, feed.lng, globeRadius);
     const worldTarget = localTarget.clone().applyMatrix4(earthMeshRef.current.matrixWorld);
     const direction = worldTarget.clone().normalize();
-    cameraTargetPosRef.current = direction.multiplyScalar(210);
+    cameraTargetPosRef.current = direction.multiplyScalar(300);
   }, []);
 
   useEffect(() => {
@@ -1254,7 +1255,7 @@ const GlobeMap: React.FC<GlobeMapProps> = ({
     const dir = cameraRef.current.position.clone().normalize();
     let currentDist = cameraRef.current.position.length();
     currentDist += e.deltaY * 0.15;
-    currentDist = Math.max(140, Math.min(480, currentDist));
+    currentDist = Math.max(265, Math.min(480, currentDist));
     cameraRef.current.position.copy(dir.multiplyScalar(currentDist));
   };
 
@@ -1311,7 +1312,7 @@ export function LiveCountryWebcams() {
   };
 
   return (
-    <section className="relative w-full h-[calc(100dvh-190px)] min-h-[420px] sm:min-h-[620px] overflow-hidden rounded-xl border border-cyan-900/60 bg-black text-slate-100 font-sans select-none">
+    <section className="relative w-full h-[min(72dvh,680px)] min-h-[420px] sm:min-h-[520px] overflow-hidden rounded-xl border border-cyan-900/60 bg-black text-slate-100 font-sans select-none">
       {/* 3D Dark Globe Canvas */}
       <GlobeMap
         feeds={feeds}
