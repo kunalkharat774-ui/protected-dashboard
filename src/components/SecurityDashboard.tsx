@@ -58,9 +58,7 @@ const PasswordStrengthView = React.lazy(() =>
 const FileSecurity = React.lazy(() =>
   import('./FileSecurity').then((module) => ({ default: module.FileSecurity }))
 );
-const LiveCountryWebcams = React.lazy(() =>
-  import('./LiveCountryWebcams').then((module) => ({ default: module.LiveCountryWebcams }))
-);
+const LiveCountryWebcams = React.lazy(() => import('./LiveCountryWebcams'));
 const SecurityAlerts = React.lazy(() =>
   import('./SecurityAlerts').then((module) => ({ default: module.SecurityAlerts }))
 );
