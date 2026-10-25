@@ -387,7 +387,6 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
       <div className="relative z-10 mt-3 sm:mt-4 flex flex-col items-center text-center px-4 max-w-lg">
         <div className="mb-2 flex items-center gap-2 font-mono-tabular text-[9px] sm:text-[10px] tracking-[0.32em] uppercase text-cyan-400/80">
           <span className="h-px w-6 bg-gradient-to-r from-transparent to-cyan-400/80" />
-          CYSEC // SECURITY OPERATIONS
           <span className="h-px w-6 bg-gradient-to-l from-transparent to-cyan-400/80" />
         </div>
         {/* Brand Name: SECUREWATCH (Clean & Centered without any icon on the left) */}
