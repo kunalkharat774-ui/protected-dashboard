@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://protected-dashboard-ashy.vercel.app/sitemap.xml

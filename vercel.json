@@ -13,7 +13,7 @@
       "destination": "/api?__vercel_api_path=:path"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|project-info\\.html$).*)",
       "destination": "/index.html"
     }
   ]
