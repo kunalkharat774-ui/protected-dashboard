@@ -3350,7 +3350,9 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
           <span>Web Application &amp; API Security Dashboard</span>
         </div>
         <div className="tracking-widest">
-          DEVELOPED BY <strong className="text-zinc-300">K2V STUDIO</strong>
+          <a href="/project-info.html" className="hover:text-zinc-300 transition-colors">
+            DESIGNED &amp; DEVELOPED BY <strong className="text-zinc-300">KUNAL KHARAT</strong>
+          </a>
         </div>
       </footer>
     </div>
