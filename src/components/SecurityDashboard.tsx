@@ -76,6 +76,23 @@ const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 type ActiveTab = 'monitoring' | 'vulnerability' | 'breach' | 'domain' | 'ip' | 'feeds' | 'network' | 'alerts' | 'reports' | 'urlReputation' | 'crypto' | 'steganography' | 'password' | 'files';
 
+const dashboardTabOrder: ActiveTab[] = [
+  'domain',
+  'feeds',
+  'network',
+  'alerts',
+  'reports',
+  'urlReputation',
+  'ip',
+  'crypto',
+  'steganography',
+  'password',
+  'files',
+  'monitoring',
+  'vulnerability',
+  'breach',
+];
+
 interface ApiProbeResult {
   timestamp: string;
   target: string;
@@ -99,6 +116,7 @@ interface ApiProbeResult {
 
 export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({ onReturnToLoader }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('network');
+  const tabNavRef = useRef<HTMLDivElement>(null);
 
   // 1. API Monitoring State
   const [monitorUrl, setMonitorUrl] = useState('');
@@ -343,24 +361,46 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    const scrollToActiveTab = (behavior: ScrollBehavior = 'smooth') => {
+      const nav = tabNavRef.current;
+      const activeButton = nav?.children[dashboardTabOrder.indexOf(activeTab)] as HTMLElement | undefined;
+
+      if (!nav || !activeButton) return;
+
+      const navRect = nav.getBoundingClientRect();
+      const buttonRect = activeButton.getBoundingClientRect();
+      const centeredScrollLeft =
+        nav.scrollLeft + buttonRect.left - navRect.left - (nav.clientWidth - buttonRect.width) / 2;
+
+      nav.scrollTo({ left: centeredScrollLeft, behavior });
+    };
+
+    const handleResize = () => scrollToActiveTab('auto');
+
+    scrollToActiveTab();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeTab]);
+
   return (
     <div className="relative min-h-screen bg-[#050505] text-[#F4F4F0] flex flex-col font-sans selection:bg-[#E11D48] selection:text-white overflow-x-clip">
 
       {/* Top Cyber Navigation Bar */}
       <header className="border-b border-zinc-800/80 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
           <img
             src="/cysec-logo.png"
             alt="CYSEC Cybersecurity"
-            className="w-24 shrink-0 sm:w-32 lg:w-40"
+            className="w-20 shrink-0 sm:w-32 lg:w-40"
           />
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-extrabold text-[10px] sm:text-xs lg:text-sm tracking-wider uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              <h1 className="font-display font-extrabold text-[10px] sm:text-xs lg:text-sm tracking-wide sm:tracking-wider uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
                 Web Application &amp; API Security Dashboard
               </h1>
             </div>
-            <p className="text-[10px] sm:text-[11px] font-mono text-zinc-500">
+            <p className="line-clamp-2 text-[10px] sm:text-[11px] font-mono text-zinc-500">
               Real-time threat intelligence, domain telemetry &amp; IP locator
             </p>
           </div>
@@ -376,7 +416,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
 
       {/* Main Workspace Navigation Tabs */}
       <div className="relative z-40 border-b border-zinc-900 bg-[#09090b]/85 backdrop-blur-md px-3 sm:px-6 lg:px-8">
-        <div aria-label="Dashboard sections" role="navigation" className="flex items-center gap-1 sm:gap-2 overflow-x-auto overscroll-x-contain scroll-smooth py-2 no-scrollbar [&>button]:shrink-0">
+        <div ref={tabNavRef} aria-label="Dashboard sections" role="navigation" className="flex items-center gap-1 sm:gap-2 overflow-x-auto overscroll-x-contain scroll-smooth py-2 no-scrollbar [&>button]:shrink-0">
           <CyberMetallicButton
             onClick={() => setActiveTab('domain')}
             variant={activeTab === 'domain' ? 'blue' : 'zinc'}
