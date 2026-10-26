@@ -383,8 +383,13 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
         <MetatronSymbol percent={percent} />
       </div>
 
-      {/* BRAND & DASHBOARD TITLES: ICON REMOVED FROM SECUREWATCH LEFT SIDE */}
+      {/* BRAND & DASHBOARD TITLES */}
       <div className="relative z-10 mt-3 sm:mt-4 flex flex-col items-center text-center px-4 max-w-lg">
+        <img
+          src="/cysec-logo.png"
+          alt="CYSEC Cybersecurity"
+          className="mb-3 w-40 min-[380px]:w-48 sm:w-56 h-auto object-contain"
+        />
         <div className="mb-2 flex items-center gap-2 font-mono-tabular text-[9px] sm:text-[10px] tracking-[0.32em] uppercase text-cyan-400/80">
           <span className="h-px w-6 bg-gradient-to-r from-transparent to-cyan-400/80" />
           <span className="h-px w-6 bg-gradient-to-l from-transparent to-cyan-400/80" />
