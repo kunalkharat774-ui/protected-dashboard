@@ -338,7 +338,7 @@ export const Globe3DMap: React.FC = () => {
     const controls = world.controls();
     if (controls) {
       controls.autoRotate = true;
-      controls.autoRotateSpeed = 0.25;
+      controls.autoRotateSpeed = 0.18;
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.enablePan = false;
@@ -346,7 +346,7 @@ export const Globe3DMap: React.FC = () => {
       controls.maxDistance = 500;
     }
 
-    world.pointOfView({ lat: 20, lng: 15, altitude: 2.1 }, 1200);
+    world.pointOfView({ lat: 28, lng: 105, altitude: 2.1 }, 1200);
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {

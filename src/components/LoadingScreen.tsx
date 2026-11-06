@@ -92,7 +92,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
       <div
         className="absolute inset-4 rounded-full blur-3xl pointer-events-none transition-opacity duration-700"
         style={{
-          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, rgba(225, 29, 72, 0.08) 42%, transparent 72%)',
+          background: 'radial-gradient(circle, rgba(251, 113, 133, 0.2) 0%, rgba(251, 191, 36, 0.12) 42%, transparent 72%)',
           opacity: 0.8,
         }}
       />
@@ -101,7 +101,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
         viewBox="0 0 400 400"
         className="w-full h-full overflow-visible transition-all duration-300"
         style={{
-          filter: 'drop-shadow(0 0 24px rgba(6, 182, 212, 0.2))',
+          filter: 'drop-shadow(0 0 20px rgba(251, 113, 133, 0.22))',
         }}
       >
         <defs>
@@ -114,9 +114,9 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           </filter>
 
           <linearGradient id="cyber-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#e11d48" />
-            <stop offset="50%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#059669" />
+            <stop offset="0%" stopColor="#fb7185" />
+            <stop offset="50%" stopColor="#fbbf24" />
+            <stop offset="100%" stopColor="#fef3c7" />
           </linearGradient>
         </defs>
 
@@ -126,7 +126,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           cy={center}
           r="172"
           fill="none"
-          stroke="#164e63"
+          stroke="#593344"
           strokeWidth="1.2"
           opacity="0.8"
         />
@@ -163,7 +163,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke={isMajor ? '#22d3ee' : '#164e63'}
+                stroke={isMajor ? '#fbbf24' : '#593344'}
                 strokeWidth={isMajor ? 1.8 : 0.8}
                 opacity={isMajor ? 0.9 : 0.5}
               />
@@ -176,7 +176,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <path
             d={spiralPath}
             fill="none"
-            stroke="#22d3ee"
+            stroke="#fcd34d"
             strokeWidth="2.2"
             strokeDasharray="4 3"
             opacity="0.85"
@@ -195,7 +195,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 y1={l.y1}
                 x2={l.x2}
                 y2={l.y2}
-                stroke={isEnergized ? '#22d3ee' : '#164e63'}
+                stroke={isEnergized ? '#fb7185' : '#593344'}
                 strokeWidth={isEnergized ? 1.5 : 0.85}
                 opacity={isEnergized ? 0.95 : 0.4}
                 className="transition-opacity duration-200"
@@ -213,7 +213,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <polygon
             points={`${center},${center - d2} ${center + d2 * Math.cos(Math.PI / 6)},${center + d2 * Math.sin(Math.PI / 6)} ${center - d2 * Math.cos(Math.PI / 6)},${center + d2 * Math.sin(Math.PI / 6)}`}
             fill="none"
-            stroke="#f43f5e"
+            stroke="#fb7185"
             strokeWidth="2.2"
             opacity="0.95"
           />
@@ -221,7 +221,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <polygon
             points={`${center},${center + d2} ${center + d2 * Math.cos(-Math.PI / 6)},${center + d2 * Math.sin(-Math.PI / 6)} ${center - d2 * Math.cos(-Math.PI / 6)},${center + d2 * Math.sin(-Math.PI / 6)}`}
             fill="none"
-            stroke="#22d3ee"
+            stroke="#fbbf24"
             strokeWidth="2.2"
             opacity="0.95"
           />
@@ -237,8 +237,8 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 cx={s.x}
                 cy={s.y}
                 r={sphereRadius}
-                fill={isActivated ? '#083344' : '#07111d'}
-                stroke={isActivated ? '#22d3ee' : '#164e63'}
+                fill={isActivated ? '#3b1725' : '#171016'}
+                stroke={isActivated ? '#fb7185' : '#593344'}
                 strokeWidth={isActivated ? 2 : 1.2}
                 opacity={1}
               />
@@ -247,7 +247,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                 cx={s.x}
                 cy={s.y}
                 r={s.id === 0 ? 5.5 : 3}
-                fill={isActivated ? '#22d3ee' : '#334155'}
+                fill={isActivated ? '#fbbf24' : '#75616a'}
                 opacity={1}
               />
               {/* Center core pulse ring */}
@@ -257,7 +257,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
                   cy={s.y}
                   r={sphereRadius + 10}
                   fill="none"
-                  stroke="#f43f5e"
+                  stroke="#fbbf24"
                   strokeWidth="1.2"
                   strokeDasharray="4 3"
                   className="animate-spin-medium"
@@ -273,7 +273,7 @@ const MetatronSymbol: React.FC<MetatronSymbolProps> = ({ percent }) => {
           <g className="animate-spin-fast" style={{ transformOrigin: '200px 200px' }}>
             <polygon
               points={`${center},${center - 32} ${center + 9},${center - 9} ${center + 32},${center} ${center + 9},${center + 9} ${center},${center + 32} ${center - 9},${center + 9} ${center - 32},${center} ${center - 9},${center - 9}`}
-              fill="#f43f5e"
+              fill="#fbbf24"
               opacity="0.9"
               filter="url(#glow-proper)"
             />
@@ -304,7 +304,7 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
     lastTimeRef.current = performance.now();
 
     const animate = (time: number) => {
-      const delta = (time - lastTimeRef.current) / 1000;
+      const delta = Math.max(0, time - lastTimeRef.current) / 1000;
       lastTimeRef.current = time;
 
       // Complete the loading sequence over 6.5 seconds.
@@ -340,57 +340,62 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
 
   return (
     <div
-      className="fixed inset-0 w-full h-[100dvh] flex flex-col items-center justify-center overflow-hidden select-none bg-[#03060b] text-slate-100"
+      className="loading-screen-page fixed inset-0 w-full h-[100dvh] flex flex-col items-center justify-center overflow-hidden select-none text-[#e2e8f0]"
+      onPointerMove={(event) => {
+        event.currentTarget.style.setProperty('--loader-pointer-x', `${event.clientX}px`);
+        event.currentTarget.style.setProperty('--loader-pointer-y', `${event.clientY}px`);
+      }}
     >
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="loading-screen-grid absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'linear-gradient(rgba(34, 211, 238, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.045) 1px, transparent 1px)',
-          backgroundSize: '48px 48px',
-          maskImage: 'radial-gradient(ellipse at center, black 20%, transparent 78%)',
+          backgroundImage: 'linear-gradient(rgba(251, 191, 36, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(251, 113, 133, 0.035) 1px, transparent 1px)',
+          backgroundSize: '52px 52px',
+          maskImage: 'linear-gradient(to bottom, transparent 4%, black 25%, black 76%, transparent)',
         }}
       />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_45%,rgba(8,47,73,0.32),transparent_58%)]" />
+      <div className="loading-screen-vignette absolute inset-0 pointer-events-none" />
 
       {/* Atmospheric Soft Luminous Backlight Glow */}
       <div
-        className="absolute w-[620px] h-[620px] rounded-full blur-[140px] pointer-events-none opacity-70"
+        className="loading-screen-ambient absolute w-[620px] h-[620px] rounded-full blur-[140px] pointer-events-none opacity-70"
         style={{
-          background: 'radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(8, 47, 73, 0.12) 45%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(251, 113, 133, 0.16) 0%, rgba(251, 191, 36, 0.14) 45%, transparent 70%)',
         }}
       />
       <div
-        className="absolute w-[360px] h-[360px] rounded-full blur-[90px] pointer-events-none opacity-45"
+        className="loading-screen-ambient loading-screen-ambient-secondary absolute w-[360px] h-[360px] rounded-full blur-[90px] pointer-events-none opacity-45"
         style={{
-          background: 'radial-gradient(circle, rgba(225, 29, 72, 0.12) 0%, transparent 65%)',
+          background: 'radial-gradient(circle, rgba(251, 191, 36, 0.16) 0%, transparent 65%)',
         }}
       />
 
       {/* TOP-LEFT CORNER: SYSTEM: ONLINE */}
-      <div className="fixed top-[max(1.5rem,env(safe-area-inset-top))] left-4 sm:top-8 sm:left-8 z-30 flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
+      <div className="loading-screen-chip fixed top-[max(1.5rem,env(safe-area-inset-top))] left-4 sm:top-8 sm:left-8 z-30 flex items-center gap-2.5 px-3.5 py-2">
         <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+          <span className="animate-ping absolute inline-flex h-full w-full bg-rose-300 opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 bg-rose-300 shadow-[0_0_8px_#fb7185]" />
         </span>
-        <span className="font-mono-tabular text-xs tracking-widest uppercase font-bold text-emerald-300">
-          SYSTEM: ONLINE
+        <span className="font-mono-tabular text-xs tracking-widest uppercase font-bold text-rose-200">
+          SYSTEM:ONLINE
         </span>
       </div>
 
       {/* CENTERPIECE: Second Animated Symbol (Metatron's Sacred Geometry Matrix) */}
       <div className="relative z-10 w-[min(340px,calc(100vw-2rem),42dvh)] sm:w-[min(390px,calc(100vw-4rem),42dvh)] md:w-[min(420px,calc(100vw-4rem),42dvh)] max-w-full aspect-square flex items-center justify-center">
-        <div className="absolute inset-[8%] rounded-full border border-cyan-400/10 shadow-[0_0_70px_rgba(6,182,212,0.08),inset_0_0_50px_rgba(6,182,212,0.04)]" />
+        <div className="loading-screen-orbit absolute inset-[8%] rounded-full border border-rose-300/15" />
         <MetatronSymbol percent={percent} />
       </div>
 
       {/* BRAND & DASHBOARD TITLES */}
       <div className="relative z-10 mt-3 sm:mt-4 flex flex-col items-center text-center px-4 max-w-lg">
-        <div className="mb-2 flex items-center gap-2 font-mono-tabular text-[9px] sm:text-[10px] tracking-[0.32em] uppercase text-cyan-400/80">
-          <span className="h-px w-6 bg-gradient-to-r from-transparent to-cyan-400/80" />
-          <span className="h-px w-6 bg-gradient-to-l from-transparent to-cyan-400/80" />
+        <div className="loading-screen-eyebrow mb-2 flex items-center gap-2 font-mono-tabular text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.32em] uppercase text-amber-200">
+          <span className="h-px w-6 bg-gradient-to-r from-transparent to-amber-300" />
+          <span>GLOBAL DEFENSE NETWORK</span>
+          <span className="h-px w-6 bg-gradient-to-l from-transparent to-amber-300" />
         </div>
         {/* Brand Name: SECUREWATCH (Clean & Centered without any icon on the left) */}
-        <h1 className="text-2xl min-[380px]:text-3xl sm:text-4xl md:text-5xl font-serif-symbolic font-black tracking-[0.14em] min-[380px]:tracking-[0.2em] sm:tracking-[0.28em] uppercase text-white mb-1.5 drop-shadow-[0_0_22px_rgba(34,211,238,0.24)]">
+        <h1 className="loading-screen-title text-2xl min-[380px]:text-3xl sm:text-4xl md:text-5xl font-display font-black tracking-[0.14em] min-[380px]:tracking-[0.2em] sm:tracking-[0.28em] uppercase text-slate-100 mb-1.5">
           SECUREWATCH
         </h1>
 
@@ -401,18 +406,25 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
 
         {/* Clean High-Precision Lightweight Progress Bar */}
         <div className="mt-4 flex flex-col items-center gap-2 w-full max-w-xs sm:max-w-sm">
-          <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-cyan-900/80 shadow-inner">
+          <div
+            className="loading-screen-progress w-full h-2 overflow-hidden"
+            role="progressbar"
+            aria-label="Loading security protocols"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.floor(percent)}
+          >
             <div
-              className="h-full bg-gradient-to-r from-rose-500 via-cyan-400 to-emerald-300 shadow-[0_0_12px_rgba(34,211,238,0.7)] transition-all duration-300"
+              className="loading-screen-progress-fill h-full transition-all duration-300"
               style={{ width: `${percent}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between w-full text-[10px] sm:text-[11px] font-mono-tabular text-slate-500">
-            <span className="tracking-wider uppercase font-medium text-slate-400">
-              INITIALIZING SECURITY POLICIES
+            <span className="tracking-wider uppercase font-medium text-slate-300">
+              LOADING SECURITY PROTOCOLS
             </span>
-            <span className="font-bold tabular-nums text-cyan-300">
+            <span className="font-bold tabular-nums text-amber-200">
               {Math.floor(percent)}%
             </span>
           </div>
@@ -420,27 +432,27 @@ export default function LoadingScreenPage({ onComplete }: LoadingScreenPageProps
       </div>
 
       {/* LEFT-SIDE FOOTER: LIVE FREQUENCY EQUALIZER */}
-      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-3 min-[380px]:left-4 sm:bottom-8 sm:left-8 z-30 flex items-center gap-2 sm:gap-3 px-2 min-[380px]:px-2.5 sm:px-3.5 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
+      <div className="loading-screen-chip fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-3 min-[380px]:left-4 sm:bottom-8 sm:left-8 z-30 flex items-center gap-2 sm:gap-3 px-2 min-[380px]:px-2.5 sm:px-3.5 py-2">
         {/* Animated frequency equalizer bars */}
         <div className="flex items-end gap-1 h-5 w-10 min-[380px]:w-12 px-0.5" aria-hidden="true">
-          <span className="h-full w-1 bg-rose-500 rounded-t animate-frequency-wave" style={{ animationDelay: '0ms' }} />
-          <span className="h-full w-1 bg-cyan-400 rounded-t animate-frequency-wave" style={{ animationDelay: '120ms' }} />
-          <span className="h-full w-1 bg-sky-400 rounded-t animate-frequency-wave" style={{ animationDelay: '240ms' }} />
-          <span className="h-full w-1 bg-teal-400 rounded-t animate-frequency-wave" style={{ animationDelay: '360ms' }} />
-          <span className="h-full w-1 bg-cyan-300 rounded-t animate-frequency-wave" style={{ animationDelay: '480ms' }} />
-          <span className="h-full w-1 bg-sky-500 rounded-t animate-frequency-wave" style={{ animationDelay: '600ms' }} />
+          <span className="h-full w-1 bg-rose-700 animate-frequency-wave" style={{ animationDelay: '0ms' }} />
+          <span className="h-full w-1 bg-rose-400 animate-frequency-wave" style={{ animationDelay: '120ms' }} />
+          <span className="h-full w-1 bg-amber-400 animate-frequency-wave" style={{ animationDelay: '240ms' }} />
+          <span className="h-full w-1 bg-orange-400 animate-frequency-wave" style={{ animationDelay: '360ms' }} />
+          <span className="h-full w-1 bg-yellow-200 animate-frequency-wave" style={{ animationDelay: '480ms' }} />
+          <span className="h-full w-1 bg-pink-300 animate-frequency-wave" style={{ animationDelay: '600ms' }} />
         </div>
 
-        <span className="text-[10px] min-[380px]:text-xs font-mono-tabular font-bold text-cyan-200 tabular-nums">
+        <span className="text-[10px] min-[380px]:text-xs font-mono-tabular font-bold text-amber-100 tabular-nums">
           {freq.toFixed(1)} Hz
         </span>
       </div>
 
       {/* RIGHT-SIDE CORNER FOOTER: DEVELOPED BY KUNAL KHARAT */}
-      <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 min-[380px]:right-4 sm:bottom-8 sm:right-8 z-30 flex items-center px-2 min-[380px]:px-2.5 sm:px-4 py-2 rounded-lg bg-slate-950/75 border border-cyan-900/70 shadow-[0_0_24px_rgba(6,182,212,0.08)] backdrop-blur-xl">
+      <div className="loading-screen-chip fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 min-[380px]:right-4 sm:bottom-8 sm:right-8 z-30 flex items-center px-2 min-[380px]:px-2.5 sm:px-4 py-2">
         <span className="font-mono-tabular text-[9px] min-[380px]:text-[10px] sm:text-xs tracking-wider uppercase font-semibold text-slate-300">
           <span className="hidden sm:inline">DEVELOPED BY{' '}</span>
-          <span className="text-cyan-300 font-bold">
+          <span className="text-amber-200 font-bold">
             KUNAL KHARAT
           </span>
         </span>

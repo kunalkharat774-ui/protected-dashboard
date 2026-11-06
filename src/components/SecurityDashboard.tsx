@@ -384,19 +384,22 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
   }, [activeTab]);
 
   return (
-    <div className="relative min-h-screen bg-[#050505] text-[#F4F4F0] flex flex-col font-sans selection:bg-[#E11D48] selection:text-white overflow-x-clip">
+    <div
+      className="security-dashboard-background relative min-h-screen text-[#F4F4F0] flex flex-col font-sans selection:bg-[#E11D48] selection:text-white overflow-x-clip"
+      onPointerMove={(event) => {
+        const x = (event.clientX / window.innerWidth) * 100;
+        const y = (event.clientY / window.innerHeight) * 100;
+        event.currentTarget.style.setProperty('--pointer-x', `${x}%`);
+        event.currentTarget.style.setProperty('--pointer-y', `${y}%`);
+      }}
+    >
 
       {/* Top Cyber Navigation Bar */}
-      <header className="border-b border-zinc-800/80 bg-black/80 backdrop-blur-md sticky top-0 z-50 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
-          <img
-            src="/cysec-logo.png"
-            alt="CYSEC Cybersecurity"
-            className="w-20 shrink-0 sm:w-32 lg:w-40"
-          />
+      <header className="asia-dashboard-header relative isolate border-b border-cyan-800/30 backdrop-blur-2xl sticky top-0 z-50 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between">
+        <div className="relative z-10 flex min-w-0 items-center gap-1.5 sm:gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-extrabold text-[10px] sm:text-xs lg:text-sm tracking-wide sm:tracking-wider uppercase bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
+              <h1 className="dashboard-header-title font-display font-extrabold text-[10px] sm:text-xs lg:text-sm tracking-wide sm:tracking-wider uppercase">
                 Web Application &amp; API Security Dashboard
               </h1>
             </div>
@@ -406,7 +409,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="relative z-10 flex items-center gap-2.5">
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-900 bg-zinc-950 text-xs font-mono text-zinc-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span>K2V STUDIO</span>
@@ -415,7 +418,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
       </header>
 
       {/* Main Workspace Navigation Tabs */}
-      <div className="relative z-40 border-b border-zinc-900 bg-[#09090b]/85 backdrop-blur-md px-3 sm:px-6 lg:px-8">
+      <div className="asia-dashboard-nav relative z-40 border-b border-cyan-800/30 backdrop-blur-2xl px-3 sm:px-6 lg:px-8">
         <div ref={tabNavRef} aria-label="Dashboard sections" role="navigation" className="flex items-center gap-1 sm:gap-2 overflow-x-auto overscroll-x-contain scroll-smooth py-2 no-scrollbar [&>button]:shrink-0">
           <CyberMetallicButton
             onClick={() => setActiveTab('domain')}

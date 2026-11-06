@@ -1,0 +1,15 @@
+{
+  "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://protected-dashboard-ashy.vercel.app/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://protected-dashboard-ashy.vercel.app/:path*",
+      "permanent": true
+    }
+  ]
+}
