@@ -218,8 +218,8 @@ The intended architecture allows the frontend to communicate with the Node.js ba
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/kunalkharat774-ui/protected-dashboard.git
-cd protected-dashboard
+git clone https://github.com/kunalkharat774-ui/darkpulse-dashboard.git
+cd darkpulse-dashboard
 ```
 
 ### 2. Install Node.js
