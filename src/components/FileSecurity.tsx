@@ -215,6 +215,7 @@ export const FileSecurity: React.FC<FileSecurityProps> = ({ onFileActivity, onBa
     hexDump: string[];
     analysisTime: string;
   } | null>(null);
+  const [scanStorageWarning, setScanStorageWarning] = useState<string | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
 
   // -------------------------------------------------------------
@@ -845,6 +846,7 @@ Status: 100% Authentic Restored Document.
   const handleSelectScanFile = (file: File) => {
     setScanFile(file);
     setScanResult(null);
+    setScanStorageWarning(null);
   };
 
   const handleScanFile = async () => {
@@ -854,6 +856,7 @@ Status: 100% Authentic Restored Document.
     }
 
     setIsScanning(true);
+    setScanStorageWarning(null);
     try {
       const buffer = await scanFile.arrayBuffer();
       const rawBytes = new Uint8Array(buffer);
@@ -982,6 +985,7 @@ Status: 100% Authentic Restored Document.
         }),
       });
       const apiData: unknown = await resp.json();
+      const storageUnavailable = resp.headers.get('X-App-Data-Persistence') === 'failed';
       if (!resp.ok) {
         const message = apiData && typeof apiData === 'object' && 'error' in apiData && typeof apiData.error === 'string'
           ? apiData.error
@@ -992,7 +996,10 @@ Status: 100% Authentic Restored Document.
         throw new Error('The file scan storage API returned an invalid response.');
       }
       if (!('success' in apiData) || apiData.success !== true) {
-        throw new Error('Supabase did not confirm that the file scan was saved.');
+        throw new Error('The server did not confirm that the file scan was processed.');
+      }
+      if (storageUnavailable) {
+        setScanStorageWarning('Scan completed, but its metadata could not be saved to Supabase. It will not appear in security history.');
       }
 
       setScanResult({
@@ -1864,6 +1871,11 @@ Status: 100% Authentic Restored Document.
 
                 {scanResult ? (
                   <div className="space-y-5">
+                    {scanStorageWarning && (
+                      <p role="status" className="rounded-lg border border-amber-800/80 bg-amber-950/30 p-3 text-xs text-amber-200">
+                        {scanStorageWarning}
+                      </p>
+                    )}
                     {/* Status Badge & Threat Score */}
                     <div
                       className={`p-4 rounded-xl border flex items-center justify-between gap-4 ${

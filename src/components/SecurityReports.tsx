@@ -105,6 +105,7 @@ export const SecurityReports: React.FC = () => {
   const { attacks, feedState } = useCheckPointThreatFeed();
   const [requestLogs, setRequestLogs] = useState<SecurityLogEntry[]>([]);
   const [requestLogError, setRequestLogError] = useState<string | null>(null);
+  const [requestLogWarning, setRequestLogWarning] = useState<string | null>(null);
   const [range, setRange] = useState<ReportRange>('24h');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -124,6 +125,11 @@ export const SecurityReports: React.FC = () => {
       }
       setRequestLogs(payload.items as SecurityLogEntry[]);
       setRequestLogError(null);
+      setRequestLogWarning(
+        'storageAvailable' in payload && payload.storageAvailable === false && 'warning' in payload && typeof payload.warning === 'string'
+          ? payload.warning
+          : null
+      );
     } catch (error) {
       setRequestLogError(error instanceof Error ? error.message : 'Could not load this app request log.');
     } finally {
@@ -150,6 +156,11 @@ export const SecurityReports: React.FC = () => {
         if (active) {
           setRequestLogs(payload.items as SecurityLogEntry[]);
           setRequestLogError(null);
+          setRequestLogWarning(
+            'storageAvailable' in payload && payload.storageAvailable === false && 'warning' in payload && typeof payload.warning === 'string'
+              ? payload.warning
+              : null
+          );
         }
       } catch (error) {
         if (active) setRequestLogError(error instanceof Error ? error.message : 'Could not load this app request log.');
@@ -293,7 +304,7 @@ export const SecurityReports: React.FC = () => {
             <p className="mt-1 font-mono text-lg font-bold text-cyan-200">
               {rows.filter((row) => row.source === 'This app request log').length}
             </p>
-            <p className="text-[9px] text-zinc-600">Latest 250 · in memory</p>
+            <p className="text-[9px] text-zinc-600">Latest 250 · Supabase · 90-day retention</p>
           </div>
           <div className="rounded-lg border border-zinc-800 bg-black/30 p-3">
             <p className="text-[10px] uppercase tracking-widest text-zinc-500">Local rule detections</p>
@@ -340,7 +351,7 @@ export const SecurityReports: React.FC = () => {
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-900/50 bg-amber-950/15 p-3">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-300" />
           <p className="text-[10px] leading-relaxed text-amber-100/80">
-            The server log is limited to its latest 250 in-memory requests and clears on restart. Check Point events are
+            The app request log includes up to 250 recent Supabase records. Check Point events are
             global threat intelligence received in this browser session, not app-specific attack evidence. No records
             are fabricated to fill gaps; missing provider fields remain unavailable.
           </p>
@@ -348,6 +359,11 @@ export const SecurityReports: React.FC = () => {
         {requestLogError && (
           <p role="alert" className="mt-3 rounded border border-rose-900/60 bg-rose-950/20 p-2 text-[10px] text-rose-200">
             {requestLogError}
+          </p>
+        )}
+        {requestLogWarning && (
+          <p role="status" className="mt-3 rounded border border-amber-900/60 bg-amber-950/20 p-2 text-[10px] text-amber-200">
+            {requestLogWarning} Request-history records cannot be included in this report.
           </p>
         )}
       </section>
@@ -364,7 +380,7 @@ export const SecurityReports: React.FC = () => {
           <div className="px-5 py-12 text-center">
             <Activity className="mx-auto h-6 w-6 text-zinc-600" />
             <p className="mt-3 text-xs text-zinc-400">
-              {requestLogError ? 'Server request records are currently unavailable.' : 'No real records are available for this period.'}
+              {requestLogError || requestLogWarning ? 'Server request records are currently unavailable.' : 'No real records are available for this period.'}
             </p>
             <p className="mt-1 text-[10px] text-zinc-600">The report will not substitute demo or sample activity.</p>
           </div>

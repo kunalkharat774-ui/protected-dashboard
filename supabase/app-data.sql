@@ -45,3 +45,5 @@ revoke all on public.app_data_events from public, anon, authenticated;
 revoke all on function public.prune_app_data_events() from public, anon, authenticated;
 grant all on public.app_data_events to service_role;
 grant usage, select on sequence public.app_data_events_id_seq to service_role;
+
+notify pgrst, 'reload schema';

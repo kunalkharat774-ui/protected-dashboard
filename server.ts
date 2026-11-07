@@ -15,6 +15,8 @@ const resolveTxtAsync = promisify(dns.resolveTxt);
 const resolveNsAsync = promisify(dns.resolveNs);
 const resolveSoaAsync = promisify(dns.resolveSoa);
 const resolveCnameAsync = promisify(dns.resolveCname);
+const supabaseStorageNotConfiguredMessage =
+  'Supabase storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.';
 
 // Helper function: Query Port 43 WHOIS Socket
 function queryWhoisSocket(server: string, query: string, timeoutMs = 6000): Promise<string> {
@@ -184,7 +186,7 @@ export async function createApp(serveFrontend = true) {
   const persistAppDataEvent = async (event: AppDataEventInsert) => {
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
-      throw new Error('Supabase storage is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.');
+      throw new Error(supabaseStorageNotConfiguredMessage);
     }
     const { error } = await supabase.from('app_data_events').insert(event);
     if (error) throw error;
@@ -195,6 +197,27 @@ export async function createApp(serveFrontend = true) {
     error !== null &&
     'code' in error &&
     ['PGRST205', '42P01'].includes(String(error.code));
+
+  const isSupabaseConfigurationError = (error: unknown) =>
+    error instanceof Error &&
+    (error.message === supabaseStorageNotConfiguredMessage ||
+      error.message.startsWith('Supabase requires SUPABASE_URL and SUPABASE_SECRET_KEY'));
+
+  const getAppDataStorageErrorMessage = (error: unknown) => {
+    if (isAppDataSchemaMissing(error)) {
+      return 'Supabase app_data_events table is missing or not in the PostgREST schema cache. Run supabase/app-data.sql in the Supabase SQL Editor, then retry.';
+    }
+    if (isSupabaseConfigurationError(error)) {
+      return 'Supabase server configuration is missing. Set SUPABASE_URL and SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) in Vercel Project Settings → Environment Variables, then redeploy.';
+    }
+    return 'Unable to access Supabase app-data storage. Check the database migration and server configuration.';
+  };
+
+  const getAppDataPersistenceReason = (error: unknown) => {
+    if (isAppDataSchemaMissing(error)) return 'schema-missing';
+    if (isSupabaseConfigurationError(error)) return 'configuration-missing';
+    return 'unavailable';
+  };
 
   const classifyApiEvent = (
     pathname: string,
@@ -305,14 +328,20 @@ export async function createApp(serveFrontend = true) {
             originalJson(body);
             return;
           }
-          if (!res.headersSent && !res.destroyed) {
-            res.status(503).setHeader('Cache-Control', 'no-store');
-            originalJson({
-              error: isAppDataSchemaMissing(error)
-                ? 'Supabase app-data schema is missing. Create the required app_data_events table in the Supabase SQL Editor.'
-                : 'Supabase could not save this result. Check the database migration and server configuration.',
-            });
+          if (statusCode < 400) {
+            res.setHeader('X-App-Data-Persistence-Reason', getAppDataPersistenceReason(error));
           }
+          if (pathname === '/api/domain/lookup') {
+            if (statusCode < 400) {
+              res.setHeader('X-App-Data-Persistence', 'failed');
+            }
+            originalJson(body);
+            return;
+          }
+          if (statusCode < 400) {
+            res.setHeader('X-App-Data-Persistence', 'failed');
+          }
+          originalJson(body);
         });
       return res;
     }) as Response['json'];
@@ -325,7 +354,12 @@ export async function createApp(serveFrontend = true) {
     try {
       const supabase = getSupabaseAdminClient();
       if (!supabase) {
-        return res.status(503).json({ error: 'Supabase storage is not configured.' });
+        return res.json({
+          items: [],
+          retentionLimit: 250,
+          storageAvailable: false,
+          warning: getAppDataStorageErrorMessage(new Error(supabaseStorageNotConfiguredMessage)),
+        });
       }
 
       const retentionCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
@@ -353,13 +387,14 @@ export async function createApp(serveFrontend = true) {
         severity: entry.severity,
         kind: entry.kind,
       }));
-      return res.json({ items, retentionLimit: 250 });
+      return res.json({ items, retentionLimit: 250, storageAvailable: true });
     } catch (error) {
       console.error('Failed to load persisted security activity:', error);
-      return res.status(503).json({
-        error: isAppDataSchemaMissing(error)
-          ? 'Supabase app-data schema is missing. Create the required app_data_events table in the Supabase SQL Editor.'
-          : 'Unable to load Supabase security activity.',
+      return res.json({
+        items: [],
+        retentionLimit: 250,
+        storageAvailable: false,
+        warning: getAppDataStorageErrorMessage(error),
       });
     }
   });
@@ -557,10 +592,10 @@ export async function createApp(serveFrontend = true) {
 
   const lookupIsMalicious = async (url: string): Promise<IsMaliciousReputation> => {
     const apiKey = process.env.ismalicious_api_key || process.env.ISMALICIOUS_API_KEY;
-    if (!apiKey) throw new Error('Server API key is not configured in .env.local.');
+    if (!apiKey) throw new Error('ISMALICIOUS_API_KEY is not configured in the deployment.');
 
     const query = new URLSearchParams({ query: url });
-    const response = await fetch(`https://ismalicious.com/api/check/reputation?${query}`, {
+    const response = await fetch(`https://api.ismalicious.com/check/reputation?${query}`, {
       headers: {
         Accept: 'application/json',
         'X-API-KEY': apiKey,
@@ -568,6 +603,9 @@ export async function createApp(serveFrontend = true) {
       signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('isMalicious rejected the API key. Set ISMALICIOUS_API_KEY to Base64(apiKey:apiSecret) for an active account.');
+      }
       throw new Error(`isMalicious API returned HTTP ${response.status}. Check the API key and account access.`);
     }
 
@@ -586,6 +624,17 @@ export async function createApp(serveFrontend = true) {
       malicious: payload.reputation.malicious,
       suspicious: payload.reputation.suspicious,
     };
+  };
+
+  const loadUrlhausFeed = async () => {
+    const authKey = process.env.URLHAUS_AUTH_KEY;
+    if (!authKey) throw new Error('URLHAUS_AUTH_KEY is not configured in the deployment.');
+    return loadThreatHostFeed(
+      'URLhaus',
+      `https://urlhaus-api.abuse.ch/v2/files/exports/${encodeURIComponent(authKey)}/hostfile.txt`,
+      5 * 1024 * 1024,
+      'urlhaus'
+    );
   };
 
   const temporaryTunnelProviders: Array<{ suffix: string; name: string }> = [
@@ -632,19 +681,16 @@ export async function createApp(serveFrontend = true) {
     try {
       const lookups = await Promise.allSettled([
         loadOpenPhishFeed(),
-        loadThreatHostFeed(
-          'URLhaus',
-          'https://urlhaus.abuse.ch/downloads/hostfile/',
-          5 * 1024 * 1024,
-          'urlhaus'
-        ),
+        process.env.URLHAUS_AUTH_KEY ? loadUrlhausFeed() : Promise.resolve(null),
         loadThreatHostFeed(
           'Phishing.Database',
           'https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-domains-ACTIVE.txt',
           25 * 1024 * 1024,
           'domains'
         ),
-        lookupIsMalicious(submittedUrl.toString()),
+        process.env.ismalicious_api_key || process.env.ISMALICIOUS_API_KEY
+          ? lookupIsMalicious(submittedUrl.toString())
+          : Promise.resolve(null),
       ]);
       const openPhish = lookups[0].status === 'fulfilled' ? lookups[0].value : null;
       const urlhaus = lookups[1].status === 'fulfilled' ? lookups[1].value : null;
@@ -656,9 +702,13 @@ export async function createApp(serveFrontend = true) {
         console.error(`${source} reputation lookup failed:`, lookup.reason);
         return [`${source}: ${lookup.reason instanceof Error ? lookup.reason.message : 'lookup failed'}`];
       });
-      if (!openPhish && !urlhaus && !phishingDatabase && !isMalicious) {
+      if (!openPhish && !urlhaus && !phishingDatabase) {
         throw new Error(`All reputation sources are unavailable. ${sourceErrors.join(' ')}`);
       }
+      const sourcesNotConfigured = [
+        ...(!process.env.URLHAUS_AUTH_KEY ? ['URLhaus'] : []),
+        ...(!(process.env.ismalicious_api_key || process.env.ISMALICIOUS_API_KEY) ? ['isMalicious'] : []),
+      ];
 
       const normalizedUrl = submittedUrl.toString();
       const hostname = submittedUrl.hostname.toLowerCase();
@@ -721,7 +771,7 @@ export async function createApp(serveFrontend = true) {
         Number(isKnownShortener) +
         Number(isExecutableDownload);
       const suspicious = !malicious && (urlRiskSignals > 0 || Boolean(isMalicious?.suspicious));
-      const verdict = malicious ? 'malicious' : suspicious ? 'suspicious' : 'unverified';
+      const verdict = malicious ? 'malicious' : suspicious ? 'suspicious' : 'no_match';
       const feedRiskScore = openPhishExact ? 100
         : urlhausHost ? 98
           : phishingDatabaseHost ? 95
@@ -735,12 +785,12 @@ export async function createApp(serveFrontend = true) {
                   Number(isKnownShortener) * 15 +
                   Number(isExecutableDownload) * 20)
                 : 0;
-      const riskScore = isMalicious?.malicious
-        ? Math.max(feedRiskScore, 90, isMalicious.confidenceScore)
-        : isMalicious?.suspicious
-          ? Math.max(feedRiskScore, Math.min(89, Math.max(55, isMalicious.confidenceScore)))
-          : verdict === 'unverified'
-            ? 100
+      const riskScore = verdict === 'no_match'
+        ? null
+        : isMalicious?.malicious
+          ? Math.max(feedRiskScore, 90, isMalicious.confidenceScore)
+          : isMalicious?.suspicious
+            ? Math.max(feedRiskScore, Math.min(89, Math.max(55, isMalicious.confidenceScore)))
             : feedRiskScore;
       const feedTimes = [
         openPhish?.checkedAt,
@@ -762,22 +812,23 @@ export async function createApp(serveFrontend = true) {
           ...(phishingDatabase ? ['Phishing.Database'] : []),
           ...(isMalicious ? ['isMalicious'] : []),
         ],
+        sourcesNotConfigured,
         sourceErrors,
         submittedUrl: normalizedUrl,
         verdict,
         riskScore,
         riskLabel: malicious
-          ? 'MALICIOUS — LISTED IN THREAT INTELLIGENCE'
+          ? 'MALICIOUS - LISTED IN THREAT INTELLIGENCE'
           : suspicious
             ? riskScore >= 70
-              ? 'HIGH RISK — SUSPICIOUS URL SIGNALS'
-              : 'SUSPICIOUS — REVIEW BEFORE OPENING'
-            : 'SAFE — NO THREAT FOUND IN CHECKED SOURCES',
+              ? 'HIGH RISK - SUSPICIOUS URL SIGNALS'
+              : 'SUSPICIOUS - REVIEW BEFORE OPENING'
+            : 'NO MATCH - NOT VERIFIED SAFE',
         riskBasis: findings.length
           ? findings.join('; ')
           : isMalicious
             ? 'isMalicious reported no malicious or suspicious reputation. No threat found does not prove the URL is safe.'
-            : 'No match in the available feeds. The checked sources did not find suspicious indicators for this domain.',
+            : 'No match in the available feeds. This does not establish that the URL is safe.',
         findings,
         matchType: openPhishExact ? 'exact_url' : openPhishHost ? 'listed_host' : null,
         matchedIndicator: openPhishExact
@@ -786,7 +837,7 @@ export async function createApp(serveFrontend = true) {
             ? openPhishHostIndicator
             : null,
         isMaliciousResult: isMalicious,
-        limitations: 'This is not a guarantee of safety. Malicious labels reflect a match in threat intelligence or an isMalicious malicious report; suspicious labels are provider reports or explainable URL/infrastructure signals. A no-threat result is not proof of safety. Risk score is for triage, not a probability.',
+        limitations: 'This is not a guarantee of safety. Malicious labels reflect matches in the checked threat intelligence; suspicious labels reflect provider reports or explainable URL/infrastructure signals. A no-match result only describes the sources checked. Scores are for triage, not probabilities.',
       });
     } catch (error) {
       console.error('Failed to complete URL reputation lookup:', error);

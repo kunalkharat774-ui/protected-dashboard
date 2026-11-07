@@ -30,6 +30,52 @@ interface IpGoogleMapProps {
   apiKey: string;
 }
 
+export const IpOpenStreetMapFallback: React.FC<{ location: IpLocationData }> = ({ location }) => {
+  const { latitude, longitude } = location;
+  const south = Math.max(-85.05112878, latitude - 0.05);
+  const north = Math.min(85.05112878, latitude + 0.05);
+  const west = Math.max(-180, longitude - 0.05);
+  const east = Math.min(180, longitude + 0.05);
+  const embedUrl = new URL('https://www.openstreetmap.org/export/embed.html');
+  embedUrl.searchParams.set('bbox', `${west},${south},${east},${north}`);
+  embedUrl.searchParams.set('layer', 'mapnik');
+  embedUrl.searchParams.set('marker', `${latitude},${longitude}`);
+
+  return (
+    <div className="relative h-[clamp(320px,55dvh,450px)] w-full overflow-hidden rounded-xl border border-zinc-800 bg-[#09090b] shadow-2xl sm:h-[520px]">
+      <iframe
+        title={`OpenStreetMap location for ${location.ip}`}
+        src={embedUrl.toString()}
+        className="h-full w-full border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+      />
+      <div className="absolute left-3 top-3 rounded-lg border border-zinc-700/80 bg-black/90 p-3 font-mono text-xs text-zinc-300 shadow-2xl">
+        <div className="flex items-center gap-2 font-bold text-white">
+          <MapPin className="h-4 w-4 text-rose-400" aria-hidden="true" />
+          {location.ip}
+        </div>
+        <p className="mt-1 text-zinc-300">
+          {location.city ? `${location.city}, ` : ''}
+          {location.region ? `${location.region}, ` : ''}
+          {location.country}
+        </p>
+        <p className="mt-1 text-[10px] text-emerald-300">
+          {latitude.toFixed(5)}, {longitude.toFixed(5)} &bull; Approximate IP location
+        </p>
+      </div>
+      <a
+        href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-3 right-3 rounded-lg border border-zinc-700 bg-black/90 px-3 py-2 text-xs text-emerald-300 hover:text-white"
+      >
+        Open in Google Maps
+      </a>
+    </div>
+  );
+};
+
 // Controller component to smoothly pan and zoom map to new IP coordinates
 function MapCameraController({ position }: { position: { lat: number; lng: number } }) {
   const map = useMap();
@@ -153,7 +199,6 @@ export const IpGoogleMap: React.FC<IpGoogleMapProps> = ({ location, apiKey }) =>
           <span>Target Geolocation Locked</span>
         </div>
         <div className="hidden sm:block text-zinc-500 text-[10px]">
-          Real-Time GPS Telemetry &bull; Precision Pinpoint
         </div>
       </div>
     </div>

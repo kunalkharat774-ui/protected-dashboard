@@ -47,7 +47,7 @@ The platform is designed around a modern dark cybersecurity interface and uses t
 
 The intended architecture allows the frontend to communicate with the Node.js backend, while the backend can interact with Supabase for database operations, event history, and other supported application features.
 
-> **Disclaimer:** Animated previews and sample metrics are illustrative. Actual monitoring, security scanning, authentication, and database operations depend on the features implemented and configured in the application.
+> **Note:** Supabase is optional for non-persistent demo usage. Lookups and scans still return live results without it, while long-term security history remains unavailable until the database is configured.
 
 ---
 
@@ -243,7 +243,7 @@ If your backend has a `package.json` file, install its dependencies:
 npm install
 ```
 
-Create a `.env.local` file in the project root and configure the environment variables required by your application.
+Create a `.env.local` file in the project root and configure the environment variables required by your application. For production, configure server-side variables in Vercel **Project Settings → Environment Variables** and redeploy.
 
 Example:
 
@@ -253,16 +253,18 @@ SUPABASE_URL=your_supabase_project_url
 SUPABASE_SECRET_KEY=your_server_only_secret
 ```
 
+The IP location map uses OpenStreetMap when `VITE_GOOGLE_MAPS_API_KEY` is not set. URL Reputation continues with the available phishing feeds if optional providers are not configured. To enable the isMalicious provider, set `ISMALICIOUS_API_KEY` to the Base64-encoded `apiKey:apiSecret` value from an active account; to enable the URLhaus feed, obtain an Auth-Key from the [abuse.ch Authentication Portal](https://auth.abuse.ch/) and set `URLHAUS_AUTH_KEY`. Keep both keys server-side, never in `VITE_` variables.
+
 **Security warning:** The Supabase secret/service-role key is a privileged server-side secret. Never expose it in frontend JavaScript, commit it to GitHub, or share it publicly. Use a server-side environment variable and configure appropriate database access policies.
 
 ### 4. Configure Supabase Cloud
 
 1. Create a project at https://supabase.com/.
-2. In Supabase **SQL Editor**, run [`supabase/app-data.sql`](./supabase/app-data.sql). It creates a private application event table with 90-day retention. Run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql) only if you still use the legacy device-visit API.
-3. Configure `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` for local development and in Vercel **Project Settings → Environment Variables** for every deployment environment you use. If your project still uses the legacy service-role API key, `SUPABASE_SERVICE_ROLE_KEY` is also accepted.
-4. Redeploy on Vercel after setting the variables. API requests that return scan results are stored before the result is sent to the browser; if Supabase storage fails, the API reports an error instead of silently claiming that the result was saved.
+2. In Supabase **SQL Editor**, run [`supabase/app-data.sql`](./supabase/app-data.sql). It creates the private `app_data_events` table, configures 90-day retention and service-role access, and requests a PostgREST schema-cache reload. If the dashboard reports a missing app-data schema, run this script in the same Supabase project configured in Vercel. Run [`supabase/device-intelligence.sql`](./supabase/device-intelligence.sql) only if you still use the legacy device-visit API.
+3. Configure `SUPABASE_URL` and `SUPABASE_SECRET_KEY` in `.env.local` for local development and in Vercel **Project Settings → Environment Variables** for every deployment environment you use. If your project still uses the legacy service-role API key, `SUPABASE_SERVICE_ROLE_KEY` is also accepted. If the dashboard reports that Supabase server configuration is missing, add these variables to the Vercel environment used by the deployment and redeploy; never use a `VITE_` or `NEXT_PUBLIC_` prefix for the secret key.
+4. Redeploy on Vercel after setting the variables. Lookups and scans still return their results when Supabase is unavailable, and the dashboard treats persistence as optional rather than a failed lookup. Security Alerts and Reports show an empty request history until Supabase is configured; they do not fabricate records.
 
-The secret/service-role key is privileged: never use a `VITE_` or `NEXT_PUBLIC_` prefix for it, put it in frontend code, or commit it. Stored records are shared in one project-wide history (the dashboard does not currently authenticate individual users) and include submitted scan targets and results. Authorization and credential fields are redacted. Uploaded file contents are never sent to Supabase; only the file name, size, type, SHA-256 hash, and scan result are stored. Data stays in Supabase for up to 90 days. Configure authentication and per-user row-level access before using this dashboard for private or multi-tenant data.
+The secret/service-role key is privileged: never use a `VITE_` or `NEXT_PUBLIC_` prefix for it, put it in frontend code, or commit it. Stored records are shared in one project-wide history (the dashboard does not currently authenticate individual users) and include submitted scan targets and results. Authorization and credential fields are redacted. Uploaded file contents are never sent to Supabase; only the file name, size, type, SHA-256 hash, and scan result are stored. Data stays in Supabase for up to 90 days. Domain lookups still return their results when Supabase persistence is unavailable; the lookup is simply not added to security history. Configure authentication and per-user row-level access before using this dashboard for private or multi-tenant data.
 
 ### 5. Start the Backend
 

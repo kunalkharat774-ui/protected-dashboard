@@ -44,7 +44,7 @@ import {
   Layers,
   Fingerprint,
 } from 'lucide-react';
-import { IpGoogleMap, IpLocationData } from './IpGoogleMap';
+import { IpGoogleMap, IpLocationData, IpOpenStreetMapFallback } from './IpGoogleMap';
 import { CyberMetallicButton } from './CyberMetallicButton';
 import { TextEncryptView } from './TextEncryptView';
 import type { FileActivity } from '../types';
@@ -155,6 +155,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
   const [domainSearching, setDomainSearching] = useState(false);
   const [domainResult, setDomainResult] = useState<any>(null);
   const [domainError, setDomainError] = useState<string | null>(null);
+  const [persistenceNotice, setPersistenceNotice] = useState<string | null>(null);
   const [showRawWhois, setShowRawWhois] = useState(false);
 
   // 5. IP Lookup State
@@ -298,12 +299,27 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
     }
   };
 
+  const readPersistenceNotice = (response: Response) => {
+    const status = response.headers.get('X-App-Data-Persistence');
+    if (status !== 'failed') return null;
+
+    switch (response.headers.get('X-App-Data-Persistence-Reason')) {
+      case 'schema-missing':
+        return 'Lookup succeeded, but it was not saved to security history: the Supabase app_data_events table is missing. Run supabase/app-data.sql in the Supabase SQL Editor, then retry.';
+      case 'configuration-missing':
+        return 'Lookup succeeded, but it was not saved to security history: Supabase server credentials are missing in Vercel. Configure SUPABASE_URL and SUPABASE_SECRET_KEY, then redeploy.';
+      default:
+        return 'Lookup succeeded, but this result could not be saved to security history because Supabase storage is unavailable.';
+    }
+  };
+
   // ================= 4. Real Domain Complete Info Handler =================
   const handleDomainLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!domainInput.trim()) return;
     setDomainSearching(true);
     setDomainError(null);
+    setPersistenceNotice(null);
     setDomainResult(null);
 
     try {
@@ -312,6 +328,10 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: domainInput }),
       });
+      const persistenceNotice = readPersistenceNotice(res);
+      if (persistenceNotice) {
+        setPersistenceNotice(persistenceNotice);
+      }
       const data = await res.json();
       if (!res.ok || data.error) {
         setDomainError(data.error || 'Domain lookup failed');
@@ -739,6 +759,13 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
               </div>
             )}
 
+            {persistenceNotice && (
+              <div className="bg-amber-950/40 border border-amber-800/80 rounded-xl p-4 flex items-center gap-3 text-amber-200 text-xs font-mono">
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+                <span>{persistenceNotice}</span>
+              </div>
+            )}
+
             {domainResult && (
               <div className="space-y-6">
                 {/* 1. Core Domain Overview Header Cards */}
@@ -1075,10 +1102,10 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
             <div className="bg-[#0c0c0e] border border-zinc-800/80 rounded-xl p-5 sm:p-6 shadow-xl">
               <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-1">
                 <MapPin className="w-5 h-5 text-emerald-400" />
-                Real IP Geolocation &amp; Live Satellite Pinpoint
+                Real IP Geolocation &amp; Interactive Map
               </h2>
               <p className="text-xs font-mono text-zinc-400 mb-4">
-                Enter any real IP address (IPv4, IPv6) or host/domain name. Trace exact latitude/longitude coordinates, ISP, network organization, and view real-time location pinpointed on interactive satellite map.
+                Enter any real IP address (IPv4, IPv6) or host/domain name to view its latitude/longitude, ISP, network organization, and approximate location on an interactive map.
               </p>
 
               <form onSubmit={(e) => handleIpLookup(e)} className="flex flex-col sm:flex-row gap-3">
@@ -1205,20 +1232,7 @@ export const SecurityDashboard: React.FC<{ onReturnToLoader?: () => void }> = ({
                   {GOOGLE_MAPS_KEY ? (
                     <IpGoogleMap location={ipResult} apiKey={GOOGLE_MAPS_KEY} />
                   ) : (
-                    <div className="flex h-[clamp(320px,55dvh,450px)] sm:h-[520px] flex-col items-center justify-center gap-3 rounded-xl border border-zinc-800 bg-[#09090b] p-6 text-center">
-                      <MapPin className="h-8 w-8 text-cyan-400" aria-hidden="true" />
-                      <p className="max-w-md text-sm text-zinc-300">
-                        Google Maps is not configured. Set <code className="text-cyan-300">VITE_GOOGLE_MAPS_API_KEY</code> to enable the interactive map.
-                      </p>
-                      <a
-                        href={`https://www.google.com/maps?q=${ipResult.latitude},${ipResult.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-emerald-400 hover:underline"
-                      >
-                        Open these coordinates in Google Maps
-                      </a>
-                    </div>
+                    <IpOpenStreetMapFallback location={ipResult} />
                   )}
                 </div>
               </div>

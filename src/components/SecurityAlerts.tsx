@@ -70,6 +70,7 @@ export const SecurityAlerts: React.FC = () => {
   const { attacks, feedState, totalToday } = useCheckPointThreatFeed();
   const [securityLogs, setSecurityLogs] = useState<SecurityLogEntry[]>([]);
   const [securityLogError, setSecurityLogError] = useState<string | null>(null);
+  const [securityLogWarning, setSecurityLogWarning] = useState<string | null>(null);
   const [selectedAttack, setSelectedAttack] = useState<ThreatAttack | null>(null);
   const [investigation, setInvestigation] = useState<InvestigationResult | null>(null);
   const [investigating, setInvestigating] = useState(false);
@@ -113,6 +114,11 @@ export const SecurityAlerts: React.FC = () => {
         if (active) {
           setSecurityLogs(data.items as SecurityLogEntry[]);
           setSecurityLogError(null);
+          setSecurityLogWarning(
+            'storageAvailable' in data && data.storageAvailable === false && 'warning' in data && typeof data.warning === 'string'
+              ? data.warning
+              : null
+          );
         }
       } catch (error) {
         if (active) {
@@ -304,7 +310,7 @@ export const SecurityAlerts: React.FC = () => {
                 );
               })}
             </svg>
-            {securityLogs.length === 0 && !securityLogError && (
+            {securityLogs.length === 0 && !securityLogError && !securityLogWarning && (
               <p className="mt-1 text-center text-[10px] text-zinc-500">
                 Waiting for real requests to this server. No generated events are shown.
               </p>
@@ -317,6 +323,8 @@ export const SecurityAlerts: React.FC = () => {
             </div>
             {securityLogError ? (
               <p role="alert" className="p-3 text-[10px] text-rose-300">{securityLogError}</p>
+            ) : securityLogWarning ? (
+              <p role="status" className="p-3 text-[10px] text-amber-200">{securityLogWarning} Request history is unavailable.</p>
             ) : securityLogs.length === 0 ? (
               <p className="p-3 text-[10px] text-zinc-500">No requests captured yet.</p>
             ) : securityLogs.slice(0, 25).map((entry) => (
